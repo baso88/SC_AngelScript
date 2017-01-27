@@ -1,8 +1,9 @@
-# Sven Co-op Angelscript  
+# Sven Co-op AngelScript  
   
 Sven Co-op Angelscript documentation, tutorials and sample code.  
   
-HTML documentation: [TBD]  
+HTML documentation: [HERE](https://baso88.github.io/SC_AngelScript/docs/)  
+Wiki pages: [HERE](https://github.com/baso88/SC_AngelScript/wiki)  
   
 ## Directory structure  
   
