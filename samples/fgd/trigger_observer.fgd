@@ -1,0 +1,20 @@
+@PointClass base(Targetname, Target) color(250 10 165) = trigger_observer : "Trigger Observer"
+[
+	spawnflags(Flags) =
+	[
+		1 : "Start on" : 1
+	]
+	
+	target(target_destination) : "Trigger On Made Observer"
+	
+	mode(choices) : "Mode" : 0 = 
+	[
+		0 : "Square"
+		1 : "Sphere"
+	]
+	
+	mins(string) : "Square mode Minimum bounds (X Y Z)":  "-32 -32 -32"
+	maxs(string) : "Square mode Maximum bounds (X Y Z)":  "32 32 32"
+	
+	radius(string) : "Sphere Radius" : 64
+]
