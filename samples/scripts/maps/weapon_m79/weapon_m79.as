@@ -5,6 +5,7 @@
 ->Textures: klla_syc3/flamshmizer
 ->Animations: Michael65
 ->Compile, Edits: Norman the Loli Pirate
+->Colored Model: D.N.I.O. 071
 ->Sprites: Der Graue Fuchs
 ->Script author: KernCore
 ->Sounds: Resident Evil Cold Blood Team
@@ -28,9 +29,12 @@ enum AS_M79_Animations
 namespace M79
 { // Namespace start
 
+// Check to see if we're using the colored view model
+bool isColored = false; // Change this to true to use the colorful view model, false to use the default view model
+
 // Models
 const string M79_W_MODEL = "models/as_gl/w_m79.mdl"; // World
-const string M79_V_MODEL = "models/as_gl/v_m79.mdl"; // View
+const string M79_V_MODEL = (isColored) ? "models/as_gl/colored/v_m79.mdl" : "models/as_gl/v_m79.mdl"; // View
 const string M79_P_MODEL = "models/as_gl/p_m79.mdl"; // Player
 const string M79_G_MODEL = "models/as_gl/40mm.mdl"; // Grenade
 const string M79_A_MODEL = "models/as_gl/w_40mm_ammo.mdl"; // Ammo
@@ -89,13 +93,13 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 
 	bool GetItemInfo( ItemInfo& out info ) // Weapon information goes here
 	{
-		info.iMaxAmmo1	= M79_MAX_CARRY;
-		info.iMaxAmmo2	= -1;
-		info.iMaxClip	= M79_MAX_CLIP;
-		info.iSlot  	= 2;
-		info.iPosition	= 10;
-		info.iFlags		= 0;
-		info.iWeight	= M79_WEIGHT;
+		info.iMaxAmmo1 	= M79_MAX_CARRY;
+		info.iMaxAmmo2 	= -1;
+		info.iMaxClip 	= M79_MAX_CLIP;
+		info.iSlot   	= 2;
+		info.iPosition 	= 10;
+		info.iFlags  	= 0;
+		info.iWeight 	= M79_WEIGHT;
 		return true;
 	}
 
