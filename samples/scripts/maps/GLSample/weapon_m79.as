@@ -82,6 +82,7 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 		g_Game.PrecacheGeneric( "sound/" + "weapons/m79/m79_open.wav" );
 		g_Game.PrecacheGeneric( "sound/" + "weapons/m79/m79_shellin.wav" );
 		g_Game.PrecacheGeneric( "sound/" + "weapons/m79/m79_shellout.wav" );
+		g_Game.PrecacheGeneric( "sprites/" + "as_sample/M79_crosshair.spr" );
 		g_Game.PrecacheGeneric( "sprites/" + "as_sample/weapon_M79.spr" );
 		g_Game.PrecacheGeneric( "sprites/" + "as_sample/weapon_m79.txt" );
 	}
