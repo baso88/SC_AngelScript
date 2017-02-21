@@ -11,3 +11,4 @@ weapon_s		640 as_sample/weapon_M79	5	45	170	45
 ammo			640 as_sample/weapon_M79	61	104	24	24
 crosshair		640 as_sample/M79_crosshair	0	0	24	32
 autoaim			640 crosshairs	48	72	24	24
+
