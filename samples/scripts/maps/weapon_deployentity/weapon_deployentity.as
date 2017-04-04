@@ -52,6 +52,8 @@ class CDeployData
 
 class weapon_deployentity : ScriptBasePlayerWeaponEntity
 {
+	private CBasePlayer@ m_pPlayer = null;
+	
 	private string m_szEntityClassname = DEPLOY_DEFAULT_ENTITY;
 	
 	private float m_flHealth = DEPLOY_DEFAULT_HEALTH;
@@ -109,6 +111,16 @@ class weapon_deployentity : ScriptBasePlayerWeaponEntity
 		return true;
 	}
 	
+	bool AddToPlayer( CBasePlayer@ pPlayer )
+	{
+		if( !BaseClass.AddToPlayer( pPlayer ) )
+			return false;
+		
+		@m_pPlayer = pPlayer;
+		
+		return true;
+	}
+	
 	bool Deploy()
 	{
 		return self.DefaultDeploy( self.GetV_Model( "models/v_pipe_wrench.mdl" ), self.GetP_Model( "models/p_pipe_wrench.mdl" ), 1, "crowbar" );
@@ -120,12 +132,12 @@ class weapon_deployentity : ScriptBasePlayerWeaponEntity
 		
 		TraceResult tr;
 		
-		Math.MakeVectors( self.m_pPlayer.pev.v_angle );
+		Math.MakeVectors( m_pPlayer.pev.v_angle );
 		
-		const Vector vecStart = self.m_pPlayer.GetOrigin() + self.m_pPlayer.pev.view_ofs;
+		const Vector vecStart = m_pPlayer.GetOrigin() + m_pPlayer.pev.view_ofs;
 		
 		//See where we should place the entity.
-		g_Utility.TraceLine( vecStart, vecStart + g_Engine.v_forward * DEPLOY_DEFAULT_MAX_DISTANCE, ignore_monsters, self.m_pPlayer.edict(), tr );
+		g_Utility.TraceLine( vecStart, vecStart + g_Engine.v_forward * DEPLOY_DEFAULT_MAX_DISTANCE, ignore_monsters, m_pPlayer.edict(), tr );
 		
 		//Couldn't find anywhere to put it.
 		if( tr.flFraction == 1.0 )
@@ -140,7 +152,7 @@ class weapon_deployentity : ScriptBasePlayerWeaponEntity
 		}
 		
 		//Inherit player angles.
-		CBaseEntity@ pEntity = g_EntityFuncs.Create( m_szEntityClassname, tr.vecEndPos + Vector( 0, 0, 8 ), Vector( 0, self.m_pPlayer.pev.angles.y, 0 ), true/*, self.m_pPlayer.edict()*/ );
+		CBaseEntity@ pEntity = g_EntityFuncs.Create( m_szEntityClassname, tr.vecEndPos + Vector( 0, 0, 8 ), Vector( 0, m_pPlayer.pev.angles.y, 0 ), true/*, m_pPlayer.edict()*/ );
 		
 		if( pEntity is null )
 		{
@@ -149,7 +161,7 @@ class weapon_deployentity : ScriptBasePlayerWeaponEntity
 		}
 		
 		//Get the player's classification, defaulting to CLASS_PLAYER_ALLY so the turret is always allied to _this_ player.
-		pEntity.SetClassification( self.m_pPlayer.Classify() );
+		pEntity.SetClassification( m_pPlayer.Classify() );
 		//Always a player ally. Call after setting class because setting class overwrites this.
 		pEntity.SetPlayerAllyDirect( true );
 		
@@ -176,7 +188,7 @@ class weapon_deployentity : ScriptBasePlayerWeaponEntity
 		//Attach deployment data.
 		CDeployData data;
 		
-		data.m_hPlayer = self.m_pPlayer;
+		data.m_hPlayer = m_pPlayer;
 		data.m_hDeployer = self;
 		
 		pEntity.GetUserData().set( DEPLOY_USERDATA_KEY, @data );
@@ -186,7 +198,7 @@ class weapon_deployentity : ScriptBasePlayerWeaponEntity
 	{
 		self.m_flNextSecondaryAttack = WeaponTimeBase() + DEPLOY_DEFAULT_SECONDARY_ATTACK_DELAY;
 		
-		CBaseEntity@ pEntity = g_Utility.FindEntityForward( self.m_pPlayer );
+		CBaseEntity@ pEntity = g_Utility.FindEntityForward( m_pPlayer );
 		
 		if( pEntity is null || !pEntity.pev.ClassNameIs( m_szEntityClassname ) )
 		{
@@ -196,7 +208,7 @@ class weapon_deployentity : ScriptBasePlayerWeaponEntity
 		CDeployData@ pData = null;
 		
 		//Not a deployed entity or not deployed by this entity's owner.
-		if( !pEntity.GetUserData().get( DEPLOY_USERDATA_KEY, @pData ) || pData.m_hPlayer.GetEntity() !is self.m_pPlayer )
+		if( !pEntity.GetUserData().get( DEPLOY_USERDATA_KEY, @pData ) || pData.m_hPlayer.GetEntity() !is m_pPlayer )
 		{
 			return;
 		}

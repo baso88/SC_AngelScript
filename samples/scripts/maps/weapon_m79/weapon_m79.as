@@ -49,6 +49,8 @@ const int M79_AMMO_GIVE 	= 2;
 
 class weapon_m79 : ScriptBasePlayerWeaponEntity
 {
+	private CBasePlayer@ m_pPlayer = null;
+	
 	void Spawn()
 	{
 		Precache();
@@ -110,15 +112,16 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 
 	bool AddToPlayer( CBasePlayer@ pPlayer )
 	{
-		if( BaseClass.AddToPlayer( pPlayer ) )
-		{
-			NetworkMessage m79( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
-				m79.WriteLong( g_ItemRegistry.GetIdForName("weapon_m79") ); // A better way than using self.m_iId
-			m79.End();
-			return true;
-		}
+		if( !BaseClass.AddToPlayer( pPlayer ) )
+			return false;
 		
-		return false;
+		@m_pPlayer = pPlayer;
+		
+		NetworkMessage m79( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
+			m79.WriteLong( g_ItemRegistry.GetIdForName("weapon_m79") ); // A better way than using self.m_iId
+		m79.End();
+		
+		return true;
 	}
 
 	bool Deploy()
@@ -138,7 +141,7 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 		if( self.m_bPlayEmptySound )
 		{
 			self.m_bPlayEmptySound = false;
-			g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_WEAPON, "weapons/357_cock1.wav", 0.8, ATTN_NORM, 0, PITCH_NORM );
+			g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_WEAPON, "weapons/357_cock1.wav", 0.8, ATTN_NORM, 0, PITCH_NORM );
 		}
 		
 		return false;
@@ -154,48 +157,48 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 	void PrimaryAttack()
 	{
 		// don't fire underwater/without having ammo loaded
-		if( self.m_pPlayer.pev.waterlevel == WATERLEVEL_HEAD || self.m_iClip <= 0 )
+		if( m_pPlayer.pev.waterlevel == WATERLEVEL_HEAD || self.m_iClip <= 0 )
 		{
 			self.PlayEmptySound();
 			self.m_flNextPrimaryAttack = WeaponTimeBase() + 1.0f;
 			return;
 		}
 
-		self.m_pPlayer.m_iWeaponVolume 	= NORMAL_GUN_VOLUME;
-		self.m_pPlayer.m_iWeaponFlash 	= BRIGHT_GUN_FLASH;
+		m_pPlayer.m_iWeaponVolume 	= NORMAL_GUN_VOLUME;
+		m_pPlayer.m_iWeaponFlash 	= BRIGHT_GUN_FLASH;
 
 		// Notify the monsters about the grenade
-		self.m_pPlayer.m_iExtraSoundTypes = bits_SOUND_DANGER;
-		self.m_pPlayer.m_flStopExtraSoundTime = WeaponTimeBase() + 0.2;
+		m_pPlayer.m_iExtraSoundTypes = bits_SOUND_DANGER;
+		m_pPlayer.m_flStopExtraSoundTime = WeaponTimeBase() + 0.2;
 
 		--self.m_iClip;
-		self.m_pPlayer.pev.effects |= EF_MUZZLEFLASH; // Add muzzleflash
+		m_pPlayer.pev.effects |= EF_MUZZLEFLASH; // Add muzzleflash
 
-		self.m_pPlayer.pev.punchangle.x = -10.0; // Recoil
+		m_pPlayer.pev.punchangle.x = -10.0; // Recoil
 
 		// player "shoot" animation
-		self.m_pPlayer.SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer.SetAnimation( PLAYER_ATTACK1 );
 
 		// Custom Volume and Pitch
-		g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_WEAPON, M79_S_SHOOT, Math.RandomFloat( 0.95, 1.0 ), ATTN_NORM, 0, 93 + Math.RandomLong( 0, 0xf ) );
+		g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_WEAPON, M79_S_SHOOT, Math.RandomFloat( 0.95, 1.0 ), ATTN_NORM, 0, 93 + Math.RandomLong( 0, 0xf ) );
 	
-		Math.MakeVectors( self.m_pPlayer.pev.v_angle + self.m_pPlayer.pev.punchangle );
+		Math.MakeVectors( m_pPlayer.pev.v_angle + m_pPlayer.pev.punchangle );
 
 		Vector vecOrigin;
 		Vector vecDir = g_Engine.v_forward * 900; //800
 
 		// we don't add in player velocity anymore.
-		if( ( self.m_pPlayer.pev.button & IN_DUCK ) != 0 )
+		if( ( m_pPlayer.pev.button & IN_DUCK ) != 0 )
 		{
-			vecOrigin = self.m_pPlayer.pev.origin + g_Engine.v_forward * 16 + g_Engine.v_right * 6;
+			vecOrigin = m_pPlayer.pev.origin + g_Engine.v_forward * 16 + g_Engine.v_right * 6;
 		}
 		else
 		{
-			vecOrigin = self.m_pPlayer.pev.origin + g_Engine.v_forward * 16 + g_Engine.v_right * 6 + self.m_pPlayer.pev.view_ofs * 0.5;
+			vecOrigin = m_pPlayer.pev.origin + g_Engine.v_forward * 16 + g_Engine.v_right * 6 + m_pPlayer.pev.view_ofs * 0.5;
 		}
 
 		// Handles the grenade as custom entity, and changes their model
-		CBaseEntity@ gGrenade = g_EntityFuncs.ShootContact( self.m_pPlayer.pev, vecOrigin, vecDir );
+		CBaseEntity@ gGrenade = g_EntityFuncs.ShootContact( m_pPlayer.pev, vecOrigin, vecDir );
 		g_EntityFuncs.SetModel( gGrenade, M79_G_MODEL );
 		gGrenade.pev.dmg = 115; // Custom damage
 
@@ -208,8 +211,8 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 
 		self.m_flTimeWeaponIdle = WeaponTimeBase() + 5; // Idle pretty soon after shooting.
 
-		if( self.m_iClip == 0 && self.m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) <= 0 )
-			self.m_pPlayer.SetSuitUpdate( "!HEV_AMO0", false, 0 );
+		if( self.m_iClip == 0 && m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) <= 0 )
+			m_pPlayer.SetSuitUpdate( "!HEV_AMO0", false, 0 );
 	}
 
 	void Reload()
@@ -218,7 +221,7 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 		if( self.m_iClip == M79_MAX_CLIP )
 			return;
 		// if the reserve ammo pool = 0, return
-		if( self.m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) == 0 )
+		if( m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) == 0 )
 			return;
 		/**
 		* Reloads the weapon with the following params:
@@ -236,13 +239,13 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 	void WeaponIdle()
 	{
 		self.ResetEmptySound();
-		self.m_pPlayer.GetAutoaimVector( AUTOAIM_5DEGREES );
+		m_pPlayer.GetAutoaimVector( AUTOAIM_5DEGREES );
 
 		if( self.m_flTimeWeaponIdle > WeaponTimeBase() )
 			return;
 
 		self.SendWeaponAnim( M79_IDLE, 0, 0 );
-		self.m_flTimeWeaponIdle = WeaponTimeBase() + g_PlayerFuncs.SharedRandomFloat( self.m_pPlayer.random_seed, 5, 6 ); // How much time to idle again
+		self.m_flTimeWeaponIdle = WeaponTimeBase() + g_PlayerFuncs.SharedRandomFloat( m_pPlayer.random_seed, 5, 6 ); // How much time to idle again
 	}
 }
 

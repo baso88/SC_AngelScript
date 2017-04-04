@@ -30,6 +30,8 @@ enum ShotgunAnimation
 
 class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 {
+	private CBasePlayer@ m_pPlayer = null;
+	
 	float m_flNextReload;
 	int m_iShell;
 	float m_flPumpTime;
@@ -72,15 +74,16 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 
 	bool AddToPlayer( CBasePlayer@ pPlayer )
 	{
-		if( BaseClass.AddToPlayer( pPlayer ) )
-		{
-			NetworkMessage message( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
-				message.WriteLong( self.m_iId );
-			message.End();
-			return true;
-		}
+		if ( !BaseClass.AddToPlayer( pPlayer ) )
+			return false;
+			
+		@m_pPlayer = pPlayer;
 		
-		return false;
+		NetworkMessage message( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
+			message.WriteLong( self.m_iId );
+		message.End();
+		
+		return true;
 	}
 	
 	bool PlayEmptySound()
@@ -89,7 +92,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 		{
 			self.m_bPlayEmptySound = false;
 			
-			g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_WEAPON, "hl/weapons/357_cock1.wav", 0.8, ATTN_NORM, 0, PITCH_NORM );
+			g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_WEAPON, "hl/weapons/357_cock1.wav", 0.8, ATTN_NORM, 0, PITCH_NORM );
 		}
 		
 		return false;
@@ -130,7 +133,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 		if( m_flPumpTime != 0 && m_flPumpTime < g_Engine.time && m_fPlayPumpSound )
 		{
 			// play pumping sound
-			g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_ITEM, "hl/weapons/scock1.wav", 1, ATTN_NORM, 0, 95 + Math.RandomLong( 0,0x1f ) );
+			g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_ITEM, "hl/weapons/scock1.wav", 1, ATTN_NORM, 0, 95 + Math.RandomLong( 0,0x1f ) );
 
 			m_fPlayPumpSound = false;
 		}
@@ -154,7 +157,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 
 			Vector vecEnd	= vecSrc + vecDir * 2048;
 			
-			g_Utility.TraceLine( vecSrc, vecEnd, dont_ignore_monsters, self.m_pPlayer.edict(), tr );
+			g_Utility.TraceLine( vecSrc, vecEnd, dont_ignore_monsters, m_pPlayer.edict(), tr );
 			
 			if( tr.flFraction < 1.0 )
 			{
@@ -172,7 +175,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 	void PrimaryAttack()
 	{
 		// don't fire underwater
-		if( self.m_pPlayer.pev.waterlevel == WATERLEVEL_HEAD )
+		if( m_pPlayer.pev.waterlevel == WATERLEVEL_HEAD )
 		{
 			self.PlayEmptySound();
 			self.m_flNextPrimaryAttack = g_Engine.time + 0.15;
@@ -189,29 +192,29 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 
 		self.SendWeaponAnim( SHOTGUN_FIRE, 0, 0 );
 		
-		g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_WEAPON, "hl/weapons/sbarrel1.wav", Math.RandomFloat( 0.95, 1.0 ), ATTN_NORM, 0, 93 + Math.RandomLong( 0, 0x1f ) );
+		g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_WEAPON, "hl/weapons/sbarrel1.wav", Math.RandomFloat( 0.95, 1.0 ), ATTN_NORM, 0, 93 + Math.RandomLong( 0, 0x1f ) );
 		
-		self.m_pPlayer.m_iWeaponVolume = LOUD_GUN_VOLUME;
-		self.m_pPlayer.m_iWeaponFlash = NORMAL_GUN_FLASH;
+		m_pPlayer.m_iWeaponVolume = LOUD_GUN_VOLUME;
+		m_pPlayer.m_iWeaponFlash = NORMAL_GUN_FLASH;
 
 		--self.m_iClip;
 
 		// player "shoot" animation
-		self.m_pPlayer.SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer.SetAnimation( PLAYER_ATTACK1 );
 
-		Vector vecSrc	 = self.m_pPlayer.GetGunPosition();
-		Vector vecAiming = self.m_pPlayer.GetAutoaimVector( AUTOAIM_5DEGREES );
+		Vector vecSrc	 = m_pPlayer.GetGunPosition();
+		Vector vecAiming = m_pPlayer.GetAutoaimVector( AUTOAIM_5DEGREES );
 
-		self.m_pPlayer.FireBullets( 4, vecSrc, vecAiming, VECTOR_CONE_DM_SHOTGUN, 2048, BULLET_PLAYER_BUCKSHOT, 0 );
+		m_pPlayer.FireBullets( 4, vecSrc, vecAiming, VECTOR_CONE_DM_SHOTGUN, 2048, BULLET_PLAYER_BUCKSHOT, 0 );
 
-		if( self.m_iClip == 0 && self.m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) <= 0 )
+		if( self.m_iClip == 0 && m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) <= 0 )
 			// HEV suit - indicate out of ammo condition
-			self.m_pPlayer.SetSuitUpdate( "!HEV_AMO0", false, 0 );
+			m_pPlayer.SetSuitUpdate( "!HEV_AMO0", false, 0 );
 
 		if( self.m_iClip != 0 )
 			m_flPumpTime = g_Engine.time + 0.5;
 			
-		self.m_pPlayer.pev.punchangle.x = -5.0;
+		m_pPlayer.pev.punchangle.x = -5.0;
 
 		self.m_flNextPrimaryAttack = g_Engine.time + 0.85;
 		self.m_flNextSecondaryAttack = g_Engine.time + 0.85;
@@ -230,7 +233,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 	void SecondaryAttack()
 	{
 		// don't fire underwater
-		if( self.m_pPlayer.pev.waterlevel == WATERLEVEL_HEAD )
+		if( m_pPlayer.pev.waterlevel == WATERLEVEL_HEAD )
 		{
 			self.PlayEmptySound();
 			self.m_flNextPrimaryAttack = g_Engine.time + 0.15;
@@ -246,24 +249,24 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 		
 		self.SendWeaponAnim( SHOTGUN_FIRE2, 0, 0 );
 		
-		g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_WEAPON, "hl/weapons/dbarrel1.wav", Math.RandomFloat( 0.98, 1.0 ), ATTN_NORM, 0, 85 + Math.RandomLong( 0, 0x1f ) );
+		g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_WEAPON, "hl/weapons/dbarrel1.wav", Math.RandomFloat( 0.98, 1.0 ), ATTN_NORM, 0, 85 + Math.RandomLong( 0, 0x1f ) );
 
-		self.m_pPlayer.m_iWeaponVolume = LOUD_GUN_VOLUME;
-		self.m_pPlayer.m_iWeaponFlash = NORMAL_GUN_FLASH;
+		m_pPlayer.m_iWeaponVolume = LOUD_GUN_VOLUME;
+		m_pPlayer.m_iWeaponFlash = NORMAL_GUN_FLASH;
 
 		self.m_iClip -= 2;
 
 		// player "shoot" animation
-		self.m_pPlayer.SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer.SetAnimation( PLAYER_ATTACK1 );
 
-		Vector vecSrc	 = self.m_pPlayer.GetGunPosition();
-		Vector vecAiming = self.m_pPlayer.GetAutoaimVector( AUTOAIM_5DEGREES );
+		Vector vecSrc	 = m_pPlayer.GetGunPosition();
+		Vector vecAiming = m_pPlayer.GetAutoaimVector( AUTOAIM_5DEGREES );
 		
-		self.m_pPlayer.FireBullets( 8, vecSrc, vecAiming, VECTOR_CONE_DM_DOUBLESHOTGUN, 2048, BULLET_PLAYER_BUCKSHOT, 0 );
+		m_pPlayer.FireBullets( 8, vecSrc, vecAiming, VECTOR_CONE_DM_DOUBLESHOTGUN, 2048, BULLET_PLAYER_BUCKSHOT, 0 );
 
-		if( self.m_iClip == 0 && self.m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) <= 0 )
+		if( self.m_iClip == 0 && m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) <= 0 )
 			// HEV suit - indicate out of ammo condition
-			self.m_pPlayer.SetSuitUpdate( "!HEV_AMO0", false, 0 );
+			m_pPlayer.SetSuitUpdate( "!HEV_AMO0", false, 0 );
 
 		if (self.m_iClip != 0)
 			m_flPumpTime = g_Engine.time + 0.95;
@@ -276,7 +279,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 		else
 			self.m_flTimeWeaponIdle = g_Engine.time + 1.5;
 			
-		self.m_pPlayer.pev.punchangle.x = -10.0;
+		m_pPlayer.pev.punchangle.x = -10.0;
 
 		m_fShotgunReload = false;
 		m_fPlayPumpSound = true;
@@ -286,7 +289,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 
 	void Reload()
 	{
-		if( self.m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) <= 0 || self.m_iClip == SHOTGUN_MAX_CLIP )
+		if( m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) <= 0 || self.m_iClip == SHOTGUN_MAX_CLIP )
 			return;
 
 		if( m_flNextReload > g_Engine.time )
@@ -300,7 +303,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 		if( !m_fShotgunReload )
 		{
 			self.SendWeaponAnim( SHOTGUN_START_RELOAD, 0, 0 );
-			self.m_pPlayer.m_flNextAttack 	= 0.6;	//Always uses a relative time due to prediction
+			m_pPlayer.m_flNextAttack 	= 0.6;	//Always uses a relative time due to prediction
 			self.m_flTimeWeaponIdle			= g_Engine.time + 0.6;
 			self.m_flNextPrimaryAttack 		= g_Engine.time + 1.0;
 			self.m_flNextSecondaryAttack	= g_Engine.time + 1.0;
@@ -326,15 +329,15 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 				
 			// Add them to the clip
 			self.m_iClip += 1;
-			self.m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType, self.m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) - 1 );
+			m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType, m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) - 1 );
 			
 			switch( Math.RandomLong( 0, 1 ) )
 			{
 			case 0:
-				g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_ITEM, "hl/weapons/reload1.wav", 1, ATTN_NORM, 0, 85 + Math.RandomLong( 0, 0x1f ) );
+				g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_ITEM, "hl/weapons/reload1.wav", 1, ATTN_NORM, 0, 85 + Math.RandomLong( 0, 0x1f ) );
 				break;
 			case 1:
-				g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_ITEM, "hl/weapons/reload3.wav", 1, ATTN_NORM, 0, 85 + Math.RandomLong( 0, 0x1f ) );
+				g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_ITEM, "hl/weapons/reload3.wav", 1, ATTN_NORM, 0, 85 + Math.RandomLong( 0, 0x1f ) );
 				break;
 			}
 		}
@@ -346,17 +349,17 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 	{
 		self.ResetEmptySound();
 
-		self.m_pPlayer.GetAutoaimVector( AUTOAIM_5DEGREES );
+		m_pPlayer.GetAutoaimVector( AUTOAIM_5DEGREES );
 
 		if( self.m_flTimeWeaponIdle < g_Engine.time )
 		{
-			if( self.m_iClip == 0 && !m_fShotgunReload && self.m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) != 0 )
+			if( self.m_iClip == 0 && !m_fShotgunReload && m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) != 0 )
 			{
 				self.Reload();
 			}
 			else if( m_fShotgunReload )
 			{
-				if( self.m_iClip != SHOTGUN_MAX_CLIP && self.m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) > 0 )
+				if( self.m_iClip != SHOTGUN_MAX_CLIP && m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType ) > 0 )
 				{
 					self.Reload();
 				}
@@ -365,7 +368,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 					// reload debounce has timed out
 					self.SendWeaponAnim( SHOTGUN_PUMP, 0, 0 );
 
-					g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_ITEM, "hl/weapons/scock1.wav", 1, ATTN_NORM, 0, 95 + Math.RandomLong( 0,0x1f ) );
+					g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_ITEM, "hl/weapons/scock1.wav", 1, ATTN_NORM, 0, 95 + Math.RandomLong( 0,0x1f ) );
 					m_fShotgunReload = false;
 					self.m_flTimeWeaponIdle = g_Engine.time + 1.5;
 				}
@@ -373,7 +376,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 			else
 			{
 				int iAnim;
-				switch( g_PlayerFuncs.SharedRandomLong( self.m_pPlayer.random_seed, 0, 2 ) )
+				switch( g_PlayerFuncs.SharedRandomLong( m_pPlayer.random_seed, 0, 2 ) )
 				{
 					case 0:
 					iAnim = SHOTGUN_IDLE_DEEP;
@@ -390,7 +393,7 @@ class weapon_hlshotgun : ScriptBasePlayerWeaponEntity
 					self.m_flTimeWeaponIdle = WeaponTimeBase() + (20.0/9.0);
 					break;
 				}
-				/*float flRand = g_PlayerFuncs.SharedRandomFloat( self.m_pPlayer.random_seed, 0, 1 );
+				/*float flRand = g_PlayerFuncs.SharedRandomFloat( m_pPlayer.random_seed, 0, 1 );
 				if( flRand <= 0.8 )
 				{
 					iAnim = SHOTGUN_IDLE_DEEP;

@@ -72,6 +72,8 @@ string GetCrowbarSound( const CrowbarSound sound, const bool bIsElectric )
 
 class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 {
+	private CBasePlayer@ m_pPlayer = null;
+	
 	int m_iSwing;
 	TraceResult m_trHit;
 	
@@ -124,6 +126,16 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 		info.iWeight		= 0;
 		return true;
 	}
+	
+	bool AddToPlayer( CBasePlayer@ pPlayer )
+	{
+		if( !BaseClass.AddToPlayer( pPlayer ) )
+			return false;
+			
+		@m_pPlayer = pPlayer;
+
+		return true;
+	}
 
 	bool Deploy()
 	{
@@ -137,9 +149,9 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 		self.m_fInReload = false;// cancel any reload in progress.
 
 		//Does not use the local WeaponTimeBase() because m_flNextAttack is not a CBasePlayerWeapon member. - Solokiller
-		self.m_pPlayer.m_flNextAttack = g_WeaponFuncs.WeaponTimeBase() + 0.5; 
+		m_pPlayer.m_flNextAttack = g_WeaponFuncs.WeaponTimeBase() + 0.5; 
 
-		self.m_pPlayer.pev.viewmodel = string_t();
+		m_pPlayer.pev.viewmodel = string_t();
 		
 		SetElectricState( false, true );
 	}
@@ -171,20 +183,20 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 	
 	bool OwnerHasEnoughArmor() const
 	{
-		return self.m_pPlayer !is null && self.m_pPlayer.pev.armorvalue >= ELECTRIC_CROWBAR_BATTERY_USAGE;
+		return m_pPlayer !is null && m_pPlayer.pev.armorvalue >= ELECTRIC_CROWBAR_BATTERY_USAGE;
 	}
 	
 	void UseArmor( const int iAmount )
 	{
-		self.m_pPlayer.pev.armorvalue -= iAmount;
+		m_pPlayer.pev.armorvalue -= iAmount;
 	}
 	
 	bool OwnerCanUseElectric() const
 	{
-		if( self.m_pPlayer is null )
+		if( m_pPlayer is null )
 			return false;
 	
-		if( ( self.m_pPlayer.pev.flags & FL_INWATER ) != 0 || !OwnerHasEnoughArmor() )
+		if( ( m_pPlayer.pev.flags & FL_INWATER ) != 0 || !OwnerHasEnoughArmor() )
 		{
 			return false;
 		}
@@ -198,7 +210,7 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 		
 		m_bIsElectric = bState;
 		
-		if( self.m_pPlayer is null )
+		if( m_pPlayer is null )
 			return;
 			
 		if( !OwnerCanUseElectric() )
@@ -212,7 +224,7 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 		const int iBit = ( bState ? 1 : 0 ) << 6;
 	
 		NetworkMessage msg( MSG_ALL, NetworkMessages::CbElec );
-			msg.WriteByte( iBit | self.m_pPlayer.entindex() );
+			msg.WriteByte( iBit | m_pPlayer.entindex() );
 		msg.End();
 	}
 	
@@ -233,22 +245,22 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 
 		TraceResult tr;
 
-		Math.MakeVectors( self.m_pPlayer.pev.v_angle );
-		Vector vecSrc	= self.m_pPlayer.GetGunPosition();
+		Math.MakeVectors( m_pPlayer.pev.v_angle );
+		Vector vecSrc	= m_pPlayer.GetGunPosition();
 		Vector vecEnd	= vecSrc + g_Engine.v_forward * 32;
 
-		g_Utility.TraceLine( vecSrc, vecEnd, dont_ignore_monsters, self.m_pPlayer.edict(), tr );
+		g_Utility.TraceLine( vecSrc, vecEnd, dont_ignore_monsters, m_pPlayer.edict(), tr );
 
 		if ( tr.flFraction >= 1.0 )
 		{
-			g_Utility.TraceHull( vecSrc, vecEnd, dont_ignore_monsters, head_hull, self.m_pPlayer.edict(), tr );
+			g_Utility.TraceHull( vecSrc, vecEnd, dont_ignore_monsters, head_hull, m_pPlayer.edict(), tr );
 			if ( tr.flFraction < 1.0 )
 			{
 				// Calculate the point of intersection of the line (or hull) and the object we hit
 				// This is and approximation of the "best" intersection
 				CBaseEntity@ pHit = g_EntityFuncs.Instance( tr.pHit );
 				if ( pHit is null || pHit.IsBSPModel() )
-					g_Utility.FindHullIntersection( vecSrc, tr, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, self.m_pPlayer.edict() );
+					g_Utility.FindHullIntersection( vecSrc, tr, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer.edict() );
 				vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
 			}
 		}
@@ -269,10 +281,10 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 				}
 				self.m_flNextPrimaryAttack = WeaponTimeBase() + 0.5;
 				// play wiff or swish sound
-				g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_MISS1, m_bIsElectric ), 1, ATTN_NORM, 0, 94 + Math.RandomLong( 0,0xF ) );
+				g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_MISS1, m_bIsElectric ), 1, ATTN_NORM, 0, 94 + Math.RandomLong( 0,0xF ) );
 
 				// player "shoot" animation
-				self.m_pPlayer.SetAnimation( PLAYER_ATTACK1 ); 
+				m_pPlayer.SetAnimation( PLAYER_ATTACK1 ); 
 			}
 		}
 		else
@@ -293,7 +305,7 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 			}
 
 			// player "shoot" animation
-			self.m_pPlayer.SetAnimation( PLAYER_ATTACK1 ); 
+			m_pPlayer.SetAnimation( PLAYER_ATTACK1 ); 
 
 			// AdamR: Custom damage option
 			float flDamage = 10;
@@ -312,15 +324,15 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 			if ( self.m_flNextPrimaryAttack + 1 < WeaponTimeBase() )
 			{
 				// first swing does full damage
-				pEntity.TraceAttack( self.m_pPlayer.pev, flDamage, g_Engine.v_forward, tr, DMG_CLUB );  
+				pEntity.TraceAttack( m_pPlayer.pev, flDamage, g_Engine.v_forward, tr, DMG_CLUB );  
 			}
 			else
 			{
 				// subsequent swings do 50% (Changed -Sniper) (Half)
 				const float flMultiplier = m_bIsElectric ? 1.0f : 0.5f;
-				pEntity.TraceAttack( self.m_pPlayer.pev, flDamage * flMultiplier, g_Engine.v_forward, tr, DMG_CLUB );  
+				pEntity.TraceAttack( m_pPlayer.pev, flDamage * flMultiplier, g_Engine.v_forward, tr, DMG_CLUB );  
 			}	
-			g_WeaponFuncs.ApplyMultiDamage( self.m_pPlayer.pev, self.m_pPlayer.pev );
+			g_WeaponFuncs.ApplyMultiDamage( m_pPlayer.pev, m_pPlayer.pev );
 
 			//m_flNextPrimaryAttack = gpGlobals->time + 0.30; //0.25
 
@@ -344,13 +356,13 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 					switch( Math.RandomLong( 0, 2 ) )
 					{
 					case 0:
-						g_SoundSystem.EmitSound( self.m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HITBOD1, m_bIsElectric ), 1, ATTN_NORM ); break;
+						g_SoundSystem.EmitSound( m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HITBOD1, m_bIsElectric ), 1, ATTN_NORM ); break;
 					case 1:
-						g_SoundSystem.EmitSound( self.m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HITBOD2, m_bIsElectric ), 1, ATTN_NORM ); break;
+						g_SoundSystem.EmitSound( m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HITBOD2, m_bIsElectric ), 1, ATTN_NORM ); break;
 					case 2:
-						g_SoundSystem.EmitSound( self.m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HITBOD3, m_bIsElectric ), 1, ATTN_NORM ); break;
+						g_SoundSystem.EmitSound( m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HITBOD3, m_bIsElectric ), 1, ATTN_NORM ); break;
 					}
-					self.m_pPlayer.m_iWeaponVolume = 128; 
+					m_pPlayer.m_iWeaponVolume = 128; 
 					
 					//Hitting players uses a different amount - Solokiller
 					if( m_bIsElectric )
@@ -386,10 +398,10 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 				switch( Math.RandomLong( 0, 1 ) )
 				{
 				case 0:
-					g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HIT1, m_bIsElectric ), fvolbar, ATTN_NORM, 0, 98 + Math.RandomLong( 0, 3 ) ); 
+					g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HIT1, m_bIsElectric ), fvolbar, ATTN_NORM, 0, 98 + Math.RandomLong( 0, 3 ) ); 
 					break;
 				case 1:
-					g_SoundSystem.EmitSoundDyn( self.m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HIT2, m_bIsElectric ), fvolbar, ATTN_NORM, 0, 98 + Math.RandomLong( 0, 3 ) ); 
+					g_SoundSystem.EmitSoundDyn( m_pPlayer.edict(), CHAN_WEAPON, GetCrowbarSound( CBARSOUND_HIT2, m_bIsElectric ), fvolbar, ATTN_NORM, 0, 98 + Math.RandomLong( 0, 3 ) ); 
 					break;
 				}
 			}
@@ -399,7 +411,7 @@ class weapon_hlcrowbar : ScriptBasePlayerWeaponEntity
 			SetThink( ThinkFunction( this.Smack ) );
 			self.pev.nextthink = g_Engine.time + 0.2;
 
-			self.m_pPlayer.m_iWeaponVolume = int( flVol * 512 ); 
+			m_pPlayer.m_iWeaponVolume = int( flVol * 512 ); 
 		}
 		return fDidHit;
 	}
