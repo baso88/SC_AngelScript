@@ -346,9 +346,10 @@ class monster_rgrunt_dead : ScriptBaseMonsterEntity
 		}
 	}
 }
-}
 
-void MapInit()
+void Register()
 {
 	g_CustomEntityFuncs.RegisterCustomEntity( "RGrunt_Dead::monster_rgrunt_dead", "monster_rgrunt_dead" );
 }
+
+} // end of namespace
