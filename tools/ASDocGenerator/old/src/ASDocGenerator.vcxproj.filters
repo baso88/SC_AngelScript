@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\keyvalues">
+      <UniqueIdentifier>{9a1274ed-d503-4d73-93ce-1ce09d41feed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\keyvalues">
+      <UniqueIdentifier>{c5988494-94ed-4cd6-8dd2-b48a3307df47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utility">
+      <UniqueIdentifier>{ac972ca7-d89f-4cac-b3d1-5ffbba00d629}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\utility">
+      <UniqueIdentifier>{6cd117cc-358c-49e6-bc07-d4f6dfc66630}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\html">
+      <UniqueIdentifier>{7413ae07-3664-4146-a72d-a3f379281814}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\html">
+      <UniqueIdentifier>{7434f01d-eb62-4472-b944-71bb2a53d642}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="keyvalues\CKeyvalue.h">
+      <Filter>Header Files\keyvalues</Filter>
+    </ClInclude>
+    <ClInclude Include="keyvalues\CKeyvalueBlock.h">
+      <Filter>Header Files\keyvalues</Filter>
+    </ClInclude>
+    <ClInclude Include="keyvalues\CKeyvalueNode.h">
+      <Filter>Header Files\keyvalues</Filter>
+    </ClInclude>
+    <ClInclude Include="keyvalues\CKeyvaluesLexer.h">
+      <Filter>Header Files\keyvalues</Filter>
+    </ClInclude>
+    <ClInclude Include="keyvalues\CKeyvaluesParser.h">
+      <Filter>Header Files\keyvalues</Filter>
+    </ClInclude>
+    <ClInclude Include="keyvalues\CKeyvaluesWriter.h">
+      <Filter>Header Files\keyvalues</Filter>
+    </ClInclude>
+    <ClInclude Include="keyvalues\Keyvalues.h">
+      <Filter>Header Files\keyvalues</Filter>
+    </ClInclude>
+    <ClInclude Include="keyvalues\KeyvaluesConstants.h">
+      <Filter>Header Files\keyvalues</Filter>
+    </ClInclude>
+    <ClInclude Include="keyvalues\KVForward.h">
+      <Filter>Header Files\keyvalues</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\CString.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\StringUtils.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="CDocGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\Logging.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\CEscapeSequences.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="html\CHTMLBody.h">
+      <Filter>Header Files\html</Filter>
+    </ClInclude>
+    <ClInclude Include="html\CHTMLComposite.h">
+      <Filter>Header Files\html</Filter>
+    </ClInclude>
+    <ClInclude Include="html\CHTMLElement.h">
+      <Filter>Header Files\html</Filter>
+    </ClInclude>
+    <ClInclude Include="html\CHTMLHeader.h">
+      <Filter>Header Files\html</Filter>
+    </ClInclude>
+    <ClInclude Include="html\CHTMLPage.h">
+      <Filter>Header Files\html</Filter>
+    </ClInclude>
+    <ClInclude Include="html\IHTMLObject.h">
+      <Filter>Header Files\html</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\CMemory.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\Utility.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\Platform.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="keyvalues\CKeyvalue.cpp">
+      <Filter>Source Files\keyvalues</Filter>
+    </ClCompile>
+    <ClCompile Include="keyvalues\CKeyvalueBlock.cpp">
+      <Filter>Source Files\keyvalues</Filter>
+    </ClCompile>
+    <ClCompile Include="keyvalues\CKeyvalueNode.cpp">
+      <Filter>Source Files\keyvalues</Filter>
+    </ClCompile>
+    <ClCompile Include="keyvalues\CKeyvaluesLexer.cpp">
+      <Filter>Source Files\keyvalues</Filter>
+    </ClCompile>
+    <ClCompile Include="keyvalues\CKeyvaluesParser.cpp">
+      <Filter>Source Files\keyvalues</Filter>
+    </ClCompile>
+    <ClCompile Include="keyvalues\CKeyvaluesWriter.cpp">
+      <Filter>Source Files\keyvalues</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\CString.cpp">
+      <Filter>Source Files\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\StringUtils.cpp">
+      <Filter>Source Files\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="CDocGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\Logging.cpp">
+      <Filter>Source Files\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\CEscapeSequences.cpp">
+      <Filter>Source Files\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="html\CHTMLBody.cpp">
+      <Filter>Source Files\html</Filter>
+    </ClCompile>
+    <ClCompile Include="html\CHTMLComposite.cpp">
+      <Filter>Source Files\html</Filter>
+    </ClCompile>
+    <ClCompile Include="html\CHTMLElement.cpp">
+      <Filter>Source Files\html</Filter>
+    </ClCompile>
+    <ClCompile Include="html\CHTMLHeader.cpp">
+      <Filter>Source Files\html</Filter>
+    </ClCompile>
+    <ClCompile Include="html\CHTMLPage.cpp">
+      <Filter>Source Files\html</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\Utility.cpp">
+      <Filter>Source Files\utility</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
