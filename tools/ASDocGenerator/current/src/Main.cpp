@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <conio.h>
 
 #include "utility/Logging.h"
 #include "utility/Utility.h"

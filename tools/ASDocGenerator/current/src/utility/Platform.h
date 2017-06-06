@@ -8,7 +8,7 @@
 #define NOMINMAX
 #include <Windows.h>
 
-#include <direct.h>
+#include <conio.h>
 
 #undef GetCurrentTime
 #undef ARRAYSIZE
