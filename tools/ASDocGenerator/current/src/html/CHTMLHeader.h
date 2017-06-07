@@ -19,18 +19,12 @@ public:
 
 	virtual void GenerateHTML( std::stringstream& stream ) override;
 
-	/**
-	*	Gets the title.
-	*/
 	std::shared_ptr<CHTMLElement> GetTitle() const { return m_Title; }
-
-	/**
-	*	Gets the stylesheet.
-	*/
+	std::shared_ptr<CHTMLElement> GetDescription() const { return m_Description; }
 	std::shared_ptr<CHTMLElement> GetStyleSheet() const { return m_StyleSheet; }
 
 private:
-	std::shared_ptr<CHTMLElement> m_Title, m_StyleSheet;
+	std::shared_ptr<CHTMLElement> m_Title, m_Description, m_StyleSheet;
 
 private:
 

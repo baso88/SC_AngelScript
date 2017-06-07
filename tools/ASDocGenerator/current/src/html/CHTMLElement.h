@@ -24,7 +24,7 @@ public:
 	*	@param szTagName Element name.
 	*	@param szTextContents Text contents.
 	*/
-	CHTMLElement( const std::string& szTagName = "", const std::string& szTextContents = "" );
+	CHTMLElement( const std::string& szTagName = "", const std::string& szTextContents = "", uint32_t flags = 0 );
 	virtual ~CHTMLElement() = default;
 
 	virtual void GenerateHTML( std::stringstream& stream ) override;
@@ -68,6 +68,8 @@ private:
 	std::string m_szTagName, m_szTextContents;
 
 	std::unordered_map<std::string, std::string> m_szAttributes;
+
+	uint32_t m_flags;
 
 private:
 	CHTMLElement( const CHTMLElement& ) = delete;

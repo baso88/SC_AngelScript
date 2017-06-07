@@ -3,6 +3,8 @@
 
 #include <sstream>
 
+#include "CHTMLShared.h"
+
 /**
 *	Interface that all HTML classes implement.
 */

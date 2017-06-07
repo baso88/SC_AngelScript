@@ -33,7 +33,6 @@ public:
 	std::shared_ptr<CHTMLBody> GetBody() const { return m_Body; }
 
 private:
-
 	std::shared_ptr<CHTMLHeader> m_Header;
 	std::shared_ptr<CHTMLBody> m_Body;
 

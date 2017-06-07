@@ -2,15 +2,16 @@
 
 const std::string CHTMLElement::DEFAULT_ATTRIBUTE_VALUE = "";
 
-CHTMLElement::CHTMLElement( const std::string& szTagName, const std::string& szTextContents )
-	: m_szTagName( szTagName )
+CHTMLElement::CHTMLElement( const std::string& szTagName, const std::string& szTextContents, uint32_t flags )
+	: m_szTagName( szTagName ),
+	m_flags( flags )
 {
 	SetTextContents( szTextContents );
 }
 
 void CHTMLElement::GenerateHTML( std::stringstream& stream )
 {
-	stream << '<' << m_szTagName;
+	stream << CHFI.IndentStr() << '<' << m_szTagName;
 
 	if( !m_szAttributes.empty() )
 	{
@@ -22,9 +23,37 @@ void CHTMLElement::GenerateHTML( std::stringstream& stream )
 
 	stream << '>';
 
+	if ( m_flags & HTMLF_NL_CLOSE )
+	{
+		stream << std::endl;
+		CHFI.EnableIndent();
+		CHFI.IncIndent();
+	}
+	else
+	{
+		CHFI.DisableIndent();
+	}
+
 	CHTMLComposite::GenerateHTML( stream );
+
+	stream << m_szTextContents;
+
+	if ( m_flags & HTMLF_NL_CLOSE )
+	{
+		CHFI.DecIndent();
+		CHFI.EnableIndent();
+	}
 	
-	stream << m_szTextContents << "</" << m_szTagName << '>' << std::endl;
+	if ( !(m_flags & HTMLF_UNPAIRED ) )
+	{
+		stream << CHFI.IndentStr() << "</" << m_szTagName << '>' << std::endl;
+	}
+	else
+	{
+		stream << std::endl;
+	}
+
+	CHFI.EnableIndent();
 }
 
 const std::string& CHTMLElement::GetAttributeValue( const std::string& szAttribute )

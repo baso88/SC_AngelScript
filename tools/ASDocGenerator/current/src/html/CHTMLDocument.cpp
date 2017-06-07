@@ -17,10 +17,14 @@ std::string CHTMLDocument::GenerateHTML()
 {
 	std::stringstream stream;
 
+	CHFI.ResetAll();
+
 	stream << "<!DOCTYPE html>" << std::endl;
 	stream << "<html>" << std::endl;
+	
 	m_Header->GenerateHTML( stream );
 	m_Body->GenerateHTML( stream );
+	
 	stream << "</html>" << std::endl;
 
 	return stream.str();
