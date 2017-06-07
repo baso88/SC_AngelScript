@@ -42,6 +42,9 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 	Message( "Input file: \"%s\"\n", pszInputFilename );
 	Message( "Output directory: \"%s\"\n", pszOutputDirectory );
 
+	m_szDestinationDirectory = pszOutputDirectory;
+
+
 	const kv::Parser::ParseResult result = parser.Parse();
 	
 	if( result != kv::Parser::ParseResult::SUCCESS )
@@ -62,13 +65,11 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 		Error( "GenerateDocumentation: Node \"Angelscript Documentation\" must be a block node!\n" );
 		return false;
 	}
-	
-	const DocsData_t docsData = { pszOutputDirectory, body, documentation };
 
-	auto docVer = docsData.pData->FindFirstChild<kv::KV>( "DocVersion" );
+	auto docVer = documentation->FindFirstChild<kv::KV>( "DocVersion" );
 	if ( !docVer )
 	{
-		Error( "GenerateDocumentation: Document version key missing or defined more than once! Old Format?\n" );
+		Error( "GenerateDocumentation: Document version key missing! Old Format?\n" );
 		return false;
 	}
 
@@ -86,10 +87,10 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 
 	Message( "Document version: %d\n", nDocVer );
 
-	auto gameVer = docsData.pData->FindFirstChild<kv::KV>( "GameVersion" );
+	auto gameVer = documentation->FindFirstChild<kv::KV>( "GameVersion" );
 	if ( !gameVer )
 	{
-		Error( "GenerateDocumentation: Game version key missing or defined more than once! Old Format?\n" );
+		Error( "GenerateDocumentation: Game version key missing! Old Format?\n" );
 		return false;
 	}
 
@@ -97,12 +98,17 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 	Message( "Game version: %s\n", strGameVer.c_str() );
 
 	body->AddObject( std::make_shared<CHTMLElement>( "h1", "Index" ) );
-	body->AddObject( std::make_shared<CHTMLElement>( "p", "Sven Co-op " + strGameVer + " Angelscript documentation." ) );
+	body->AddObject( std::make_shared<CHTMLElement>( "p", "Sven Co-op " + strGameVer + " AngelScript documentation." ) );
+
+	body->AddObject( std::make_shared<CHTMLElement>( "h2", "Contents" ) );
+
+	auto ul = std::make_shared<CHTMLElement>( "ul" );
+	body->AddObject( ul );
 
 	const GenDocsData_t genDocsData[] =
 	{
-		{ "Classes", "Classes", &CDocGenerator::GenerateClass, "Class" },
-		{ "Enumerations", "Enums", &CDocGenerator::GenerateEnum, "Enum" },
+		{ "Classes", "Classes", &CDocGenerator::GenerateClasses },
+		{ "Enumerations", "Enums", &CDocGenerator::GenerateEnums },
 		{ "Global Functions", "Functions", &CDocGenerator::GenerateGlobalFunctions },
 		{ "Global Properties", "Properties", &CDocGenerator::GenerateGlobalProperties },
 		{ "Type Definitions", "Typedefs", &CDocGenerator::GenerateTypedefs },
@@ -111,9 +117,22 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 
 	for( const auto& data : genDocsData )
 	{
-		if( !GenerateDocs( docsData, data ) )
+		if( !GenerateDocs( *documentation, ul, data ) )
 			return false;
 	}
+
+	body->AddObject( std::make_shared<CHTMLElement>( "h2", "Links" ) );
+
+	auto ul2 = std::make_shared<CHTMLElement>( "ul" );
+	body->AddObject( ul2 );
+
+	auto li2 = std::make_shared<CHTMLElement>( "li" );
+	ul2->AddObject( li2 );
+
+	auto a2 = std::make_shared<CHTMLElement>( "a", "Angelscript documentation" );
+	a2->SetAttributeValue( "href", "http://www.angelcode.com/angelscript/sdk/docs/manual/index.html" );
+
+	li2->AddObject( a2 );
 
 	SavePage( pszOutputDirectory, indexPage );
 
@@ -122,17 +141,10 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 	return true;
 }
 
-bool CDocGenerator::GenerateDocs( const DocsData_t& data, const GenDocsData_t& genData )
+bool CDocGenerator::GenerateDocs( const kv::Block& data, std::shared_ptr<CHTMLElement> body, const GenDocsData_t& genData )
 {
-	data.body->AddObject( std::make_shared<CHTMLElement>( "h2", genData.pszType ) );
-
-	auto uList = std::make_shared<CHTMLElement>( "ul" );
-
-	data.body->AddObject( uList );
-
-	auto block = data.pData->FindFirstChild<kv::Block>( genData.pszBlockName );
-
-	if( !block )
+	auto block = data.FindFirstChild<kv::Block>( genData.pszBlockName );
+	if( !block || block->GetType() != kv::NodeType::BLOCK )
 	{
 		Error( "GenerateDocs: Node \"%s\" must be a block node!\n", genData.pszBlockName );
 		return false;
@@ -140,51 +152,35 @@ bool CDocGenerator::GenerateDocs( const DocsData_t& data, const GenDocsData_t& g
 
 	Message( "Generating %s...\n", genData.pszType );
 
-	kv::Block::Children_t blocks;
-
-	if( genData.pszBlockListName )
-		blocks = block->GetChildrenByKey( genData.pszBlockListName );
-	else
-		blocks.push_back( block );
-
-	for( auto it = blocks.rbegin(); it != blocks.rend(); ++it )
+	auto page = ( this->*genData.generateFn )( *static_cast<kv::Block*>( block ) );
+	if( page )
 	{
-		auto currentBlock = *it;
+		SavePage( m_szDestinationDirectory, page );
 
-		if( !currentBlock || currentBlock->GetType() != kv::NodeType::BLOCK )
-		{
-			Error( "GenerateDocumentation: Node \"%s\" must be a block node!\n", genData.pszBlockListName ? genData.pszBlockListName : genData.pszBlockName );
-			return false;
-		}
+		auto li = std::make_shared<CHTMLElement>( "li" );
+		body->AddObject( li );
 
-		auto page = ( this->*genData.generateFn )( *static_cast<kv::Block*>( currentBlock ) );
-
-		if( page )
-		{
-			SavePage( data.szDestinationDirectory, page );
-
-			auto li = std::make_shared<CHTMLElement>( "li" );
-			auto a = std::make_shared<CHTMLElement>( "a", page->GetHeader()->GetTitle()->GetTextContents() );
-			a->SetAttributeValue( "href", page->GetHeader()->GetTitle()->GetTextContents() + ".htm" );
-			li->AddObject( a );
-			uList->AddObject( li );
-		}
-		else
-		{
-			Warning( "GenerateDocs: Failed to create page for node '%s'\n", block->GetKey().CStr() );
-		}
+		auto a = std::make_shared<CHTMLElement>( "a", genData.pszType );
+		a->SetAttributeValue( "href", page->GetHeader()->GetTitle()->GetTextContents() + ".htm" );
+		
+		li->AddObject( a );
+	}
+	else
+	{
+		Warning( "GenerateDocs: Failed to create page for node '%s'\n", block->GetKey().CStr() );
 	}
 
 	return true;
 }
 
-std::shared_ptr<CHTMLDocument> CDocGenerator::CreateDocument( const char* pszTitle )
+std::shared_ptr<CHTMLDocument> CDocGenerator::CreateDocument( const char * pszTitle, const char * pszDescription )
 {
 	assert( pszTitle );
 
 	auto doc = std::make_shared<CHTMLDocument>();
 
 	doc->GetHeader()->GetTitle()->SetTextContents( pszTitle );
+	doc->GetHeader()->GetDescription()->SetAttributeValue( "content", pszDescription ? pszDescription : "" );
 
 	auto stylesheet = doc->GetHeader()->GetStyleSheet();
 
@@ -271,6 +267,48 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateEnum( const kv::Block& enu
 	);
 }
 
+std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateClasses( const kv::Block& functionsData )
+{
+	return GenerateCollectionPage( functionsData,
+	{
+		"Classes",
+		"Classes",
+		"Here is a list of all documented classes with a brief descriptions of each.",
+		{
+			"Classes",
+			"Class",
+			{
+				//{ "Namespace", "Namespace", &NamespaceContentConverter },
+				{ "Name", "ClassName", &DefaultContentConverter, &CDocGenerator::GenerateClass },
+				{ "Description", "Documentation", &DefaultContentConverter }
+			}
+
+		}
+	}
+	);
+}
+
+std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateEnums( const kv::Block& functionsData )
+{
+	return GenerateCollectionPage( functionsData,
+	{
+		"Enums",
+		"Enumerations",
+		"Here is a list of all documented enums with a brief descriptions of each.",
+		{
+			"Enums",
+			"Enum",
+			{
+				//{ "Namespace", "Namespace", &NamespaceContentConverter },
+				{ "Name", "Name", &DefaultContentConverter, &CDocGenerator::GenerateEnum },
+				{ "Description", "Documentation", &DefaultContentConverter }
+			}
+
+		}
+	}
+	);
+}
+
 std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateGlobalFunctions( const kv::Block& functionsData )
 {
 	return GenerateCollectionPage( functionsData,
@@ -317,7 +355,7 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateTypedefs( const kv::Block&
 	{
 		"Typedefs",
 		"Type definitions",
-		"Typedefs alias one type to another.",
+		"Typedefs provides alternative names to existing types.",
 		{
 			"Typedefs",
 			"Typedef",
@@ -338,7 +376,7 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateFuncDefs( const kv::Block&
 	{
 		"FuncDefs",
 		"Function Definitions",
-		"Function definitions are callbacks that can be passed around.<br/>"
+		"Function definitions are callbacks that can be passed around.<br>"
 		"Consult the <a href=\"http://www.angelcode.com/angelscript/sdk/docs/manual/doc_callbacks.html\">Angelscript documentation</a> for more info.",
 		{
 			"FuncDefs",
@@ -362,22 +400,11 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateTypePage( const kv::Block&
 		return nullptr;
 	}
 
-	auto doc = CreateDocument( name->GetValue().CStr() );
-	auto body = doc->GetBody();
-
-	body->AddObject( std::make_shared<CHTMLElement>( "h1", name->GetValue().CStr() ) );
-
 	auto nspace = data.FindFirstChild<kv::KV>( pageData.pszNamespace );
 	if( !nspace )
 	{
 		Error( "GenerateTypePage: Node \"%s\" must be a text node!\n", pageData.pszNamespace );
 		return nullptr;
-	}
-
-	const auto& nspaceText = nspace->GetValue();
-	if( !nspaceText.IsEmpty() )
-	{
-		body->AddObject( std::make_shared<CHTMLElement>( "p", std::string( "Namespace: " ) + nspaceText.CStr() ) );
 	}
 
 	auto documentation = data.FindFirstChild<kv::KV>( pageData.pszDocumentation );
@@ -386,6 +413,25 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateTypePage( const kv::Block&
 		Error( "GenerateTypePage: Node \"%s\" must be a text node!\n", pageData.pszDocumentation );
 		return nullptr;
 	}
+
+	auto doc = CreateDocument( name->GetValue().CStr(), documentation->GetValue().CStr() );
+	auto body = doc->GetBody();
+
+	body->AddObject( std::make_shared<CHTMLElement>( "h1", name->GetValue().CStr() ) );
+
+
+
+	const auto& nspaceText = nspace->GetValue();
+	if( !nspaceText.IsEmpty() )
+	{
+		auto p = std::make_shared<CHTMLElement>( "p" );
+		auto b = std::make_shared<CHTMLElement>( "b", std::string( "Namespace: " ) );
+		p->AddObject( b );
+		p->SetTextContents( nspaceText.CStr() );
+		body->AddObject( p );
+	}
+
+
 
 	body->AddObject( std::make_shared<CHTMLElement>( "p", documentation->GetValue().CStr() ) );
 
@@ -460,16 +506,16 @@ std::pair<bool, std::shared_ptr<CHTMLElement>> CDocGenerator::GenerateTable( con
 		return std::make_pair( true, nullptr );
 	}
 
-	auto table = std::make_shared<CHTMLElement>( "table" );
+	auto table = std::make_shared<CHTMLElement>( "table", "", HTMLF_NL_CLOSE );
 
-	auto tableHeader = std::make_shared<CHTMLElement>( "tr" );
+	auto headrow = std::make_shared<CHTMLElement>( "tr", "", HTMLF_NL_CLOSE );
 
 	for( const auto& contentEntry : content.vecContent )
 	{
-		tableHeader->AddObject( std::make_shared<CHTMLElement>( "th", contentEntry.szHeaderName ) );
+		headrow->AddObject( std::make_shared<CHTMLElement>( "th", contentEntry.szHeaderName ) );
 	}
 
-	table->AddObject( tableHeader );
+	table->AddObject( headrow );
 
 	for( auto it = blocks.rbegin(); it != blocks.rend(); ++it )
 	{
@@ -483,7 +529,7 @@ std::pair<bool, std::shared_ptr<CHTMLElement>> CDocGenerator::GenerateTable( con
 
 		auto block = static_cast<kv::Block*>( blockNode );
 
-		auto row = std::make_shared<CHTMLElement>( "tr" );
+		auto row = std::make_shared<CHTMLElement>( "tr", "", HTMLF_NL_CLOSE );
 
 		for( const auto& contentEntry : content.vecContent )
 		{
@@ -497,7 +543,35 @@ std::pair<bool, std::shared_ptr<CHTMLElement>> CDocGenerator::GenerateTable( con
 
 			const CString szText = ( contentEntry.converterFn ? contentEntry.converterFn : DefaultContentConverter )( *contextText );
 
-			row->AddObject( std::make_shared<CHTMLElement>( "td", szText.CStr() ) );
+			bool bGenLink = false;
+			if ( contentEntry.generateFn )
+			{
+				auto page = ( this->*contentEntry.generateFn )( *static_cast<kv::Block*>( block ) );
+				if( page )
+				{
+					SavePage( m_szDestinationDirectory, page );
+					bGenLink = true;
+				}
+				else
+				{
+					Warning( "GenerateTable: Failed to create page for node '%s'\n", block->GetKey().CStr() );
+				}
+			}
+
+			auto td = std::make_shared<CHTMLElement>( "td" );
+
+			if ( bGenLink )
+			{
+				auto a = std::make_shared<CHTMLElement>( "a", szText.CStr() );
+				a->SetAttributeValue( "href", std::string( szText.CStr() ) + ".htm" );
+				td->AddObject( a );
+			}
+			else
+			{
+				td->SetTextContents( szText.CStr() );
+			}
+
+			row->AddObject( td );
 		}
 
 		table->AddObject( row );

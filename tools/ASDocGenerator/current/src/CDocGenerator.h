@@ -38,47 +38,30 @@ public:
 private:
 	using GenerateFn = std::shared_ptr<CHTMLDocument>( CDocGenerator::* )( const kv::Block& data );
 
-	struct DocsData_t final
-	{
-		const std::string szDestinationDirectory;
-		const std::shared_ptr<CHTMLBody> body;
-		const kv::Block* const pData;
-
-		DocsData_t( const std::string szDestinationDirectory,
-					const std::shared_ptr<CHTMLBody> body,
-					const kv::Block* const pData )
-			: szDestinationDirectory( szDestinationDirectory )
-			, body( body )
-			, pData( pData )
-		{
-		}
-	};
-
 	struct GenDocsData_t final
 	{
 		const char* const pszType;
 		const char* const pszBlockName;
 		const GenerateFn generateFn;
-		const char* const pszBlockListName;
 
 		GenDocsData_t( const char* const pszType,
 					   const char* const pszBlockName,
-					   const GenerateFn generateFn,
-					   const char* const pszBlockListName = nullptr )
+					   const GenerateFn generateFn )
 			: pszType( pszType )
 			, pszBlockName( pszBlockName )
 			, generateFn( generateFn )
-			, pszBlockListName( pszBlockListName )
 		{
 		}
 	};
 
-	bool GenerateDocs( const DocsData_t& data, const GenDocsData_t& genData );
+	bool GenerateDocs( const kv::Block& classData, std::shared_ptr<CHTMLElement> body, const GenDocsData_t& genData );
 
-	std::shared_ptr<CHTMLDocument> CreateDocument( const char* pszTitle );
+	std::shared_ptr<CHTMLDocument> CreateDocument( const char* pszTitle, const char * pszDescription = nullptr );
 
 	std::shared_ptr<CHTMLDocument> GenerateClass( const kv::Block& classData );
 	std::shared_ptr<CHTMLDocument> GenerateEnum( const kv::Block& enumData );
+	std::shared_ptr<CHTMLDocument> GenerateClasses(const kv::Block & functionsData);
+	std::shared_ptr<CHTMLDocument> GenerateEnums(const kv::Block & functionsData);
 	std::shared_ptr<CHTMLDocument> GenerateGlobalFunctions( const kv::Block& functionsData );
 	std::shared_ptr<CHTMLDocument> GenerateGlobalProperties( const kv::Block& propertiesData );
 	std::shared_ptr<CHTMLDocument> GenerateTypedefs( const kv::Block& typedefsData );
@@ -107,10 +90,12 @@ private:
 	struct TableContentEntry_t final : public ContentEntry_t
 	{
 		const std::string szHeaderName;
+		const GenerateFn generateFn;
 
-		TableContentEntry_t( std::string&& szHeaderName, std::string&& szElementName, const CustomContentConverterFn converterFn )
+		TableContentEntry_t( std::string&& szHeaderName, std::string&& szElementName, const CustomContentConverterFn converterFn, const GenerateFn generateFn = nullptr )
 			: ContentEntry_t( std::move( szElementName ), converterFn )
 			, szHeaderName( std::move( szHeaderName ) )
+			, generateFn( generateFn )
 		{
 		}
 	};
@@ -176,6 +161,8 @@ private:
 private:
 	CDocGenerator( const CDocGenerator& ) = delete;
 	CDocGenerator& operator=( const CDocGenerator& ) = delete;
+
+	std::string m_szDestinationDirectory;
 };
 
 #endif //CDOCGENERATOR_H
