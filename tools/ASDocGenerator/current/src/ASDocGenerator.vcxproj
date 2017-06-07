@@ -170,6 +170,7 @@
     <ClInclude Include="html\CHTMLElement.h" />
     <ClInclude Include="html\CHTMLHeader.h" />
     <ClInclude Include="html\CHTMLDocument.h" />
+    <ClInclude Include="html\CHTMLShared.h" />
     <ClInclude Include="html\IHTMLObject.h" />
     <ClInclude Include="keyvalues\CKeyvalue.h" />
     <ClInclude Include="keyvalues\CKeyvalueBlock.h" />
@@ -185,6 +186,7 @@
     <ClInclude Include="utility\CString.h" />
     <ClInclude Include="utility\Logging.h" />
     <ClInclude Include="utility\Platform.h" />
+    <ClInclude Include="utility\Shareddefs.h" />
     <ClInclude Include="utility\StringUtils.h" />
     <ClInclude Include="utility\Utility.h" />
   </ItemGroup>
@@ -195,6 +197,7 @@
     <ClCompile Include="html\CHTMLElement.cpp" />
     <ClCompile Include="html\CHTMLHeader.cpp" />
     <ClCompile Include="html\CHTMLDocument.cpp" />
+    <ClCompile Include="html\CHTMLShared.cpp" />
     <ClCompile Include="keyvalues\CKeyvalue.cpp" />
     <ClCompile Include="keyvalues\CKeyvalueBlock.cpp" />
     <ClCompile Include="keyvalues\CKeyvalueNode.cpp" />

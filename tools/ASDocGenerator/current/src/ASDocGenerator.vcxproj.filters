@@ -102,6 +102,12 @@
     <ClInclude Include="html\CHTMLDocument.h">
       <Filter>Header Files\html</Filter>
     </ClInclude>
+    <ClInclude Include="html\CHTMLShared.h">
+      <Filter>Header Files\html</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\Shareddefs.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="keyvalues\CKeyvalue.cpp">
@@ -160,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="utility\Platform.cpp">
       <Filter>Source Files\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="html\CHTMLShared.cpp">
+      <Filter>Source Files\html</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
