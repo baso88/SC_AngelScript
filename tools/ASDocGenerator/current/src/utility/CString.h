@@ -336,16 +336,4 @@ struct CStringCaseInsensitiveLess
 	}
 };
 
-namespace std
-{
-template<>
-struct hash<CString> : public std::unary_function<CString, size_t>
-{
-	std::size_t operator()( const CString& szStr ) const
-	{
-		return StringHash( szStr.CStr() );
-	}
-};
-}
-
-#endif //CSTRING_H
+#endif // CSTRING_H

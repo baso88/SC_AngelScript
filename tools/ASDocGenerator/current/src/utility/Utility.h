@@ -1,29 +1,10 @@
-#ifndef COMMON_UTILITY_H
-#define COMMON_UTILITY_H
+#ifndef UTILITY_H
+#define UTILITY_H
 
 #include <algorithm>
 #include <cstdint>
 
 #include "Platform.h"
-
-/**
-*	Utility functionality.
-*/
-
-/**
-*	Initializes the random number generator.
-*/
-void UTIL_InitRandom();
-
-/**
-*	Gets a random 32 bit integer number in the range [iLow, iHigh]
-*/
-int UTIL_RandomLong( int iLow, int iHigh );
-
-/**
-*	Gets a random 32 bit floating point number in the range [flLow, flHigh]
-*/
-float UTIL_RandomFloat( float flLow, float flHigh );
 
 /**
 *	Clamps a given value to a given range.
@@ -70,18 +51,4 @@ constexpr inline size_t _ArraySizeof( T( &)[ SIZE ] )
 
 #define MAX_BUFFER_LENGTH 512
 
-//TODO: this might be better off in a static library;
-
-/**
-*	Returns the current tick time, in milliseconds.
-*	@return Tick time, in milliseconds.
-*/
-long long GetCurrentTick();
-
-/**
-*	Gets the current time, in seconds.
-*	@return Current time, in seconds.
-*/
-double GetCurrentTime();
-
-#endif //COMMON_UTILITY_H
+#endif // UTILITY_H
