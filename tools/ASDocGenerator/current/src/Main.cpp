@@ -3,12 +3,11 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "utility/Shareddefs.h"
 #include "utility/Logging.h"
 #include "utility/Utility.h"
 
 #include "CDocGenerator.h"
-
-#define APP_VER "1.1"
 
 //Implement the default log listener.
 class CPrintfLogListener final : public ILogListener
@@ -101,8 +100,7 @@ int main( int iArgc, char* pszArgv[] )
 		}
 	}
 
-	Message( "Sven Co-op Angelscript Documentation Generator (appver %s, docver %d)\n",
-		APP_VER, CDocGenerator::AS_DOCS_VER );
+	Message( "%s (appver %s, docver %d)\n", APP_NAME_LONG, APP_VER, CDocGenerator::AS_DOCS_VER );
 
 	int iReturnCode = EXIT_SUCCESS;
 
