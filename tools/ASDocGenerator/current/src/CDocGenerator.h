@@ -91,11 +91,15 @@ private:
 	{
 		const std::string szHeaderName;
 		const GenerateFn generateFn;
+		const bool bShortFmt;
 
-		TableContentEntry_t( std::string&& szHeaderName, std::string&& szElementName, const CustomContentConverterFn converterFn, const GenerateFn generateFn = nullptr )
+		TableContentEntry_t( std::string&& szHeaderName, std::string&& szElementName,
+			const CustomContentConverterFn converterFn, const GenerateFn generateFn = nullptr,
+			const bool bShortFmt = false )
 			: ContentEntry_t( std::move( szElementName ), converterFn )
 			, szHeaderName( std::move( szHeaderName ) )
 			, generateFn( generateFn )
+			, bShortFmt( bShortFmt )
 		{
 		}
 	};

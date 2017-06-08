@@ -204,7 +204,7 @@ CString ClassFlagsContentConverter( const kv::KV& text )
 	else
 		pszType = "Unknown type";
 
-	return CString( "Type: " ) + pszType;
+	return CString( "<b>Type:</b> " ) + pszType;
 }
 
 std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateClass( const kv::Block& classData )
@@ -279,8 +279,8 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateClasses( const kv::Block& 
 			"Class",
 			{
 				//{ "Namespace", "Namespace", &NamespaceContentConverter },
-				{ "Name", "ClassName", &DefaultContentConverter, &CDocGenerator::GenerateClass },
-				{ "Description", "Documentation", &DefaultContentConverter }
+				{ "Name", "ClassName", &DefaultContentConverter, &CDocGenerator::GenerateClass, false },
+				{ "Description", "Documentation", &DefaultContentConverter, nullptr, true }
 			}
 
 		}
@@ -300,8 +300,8 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateEnums( const kv::Block& fu
 			"Enum",
 			{
 				//{ "Namespace", "Namespace", &NamespaceContentConverter },
-				{ "Name", "Name", &DefaultContentConverter, &CDocGenerator::GenerateEnum },
-				{ "Description", "Documentation", &DefaultContentConverter }
+				{ "Name", "Name", &DefaultContentConverter, &CDocGenerator::GenerateEnum, false },
+				{ "Description", "Documentation", &DefaultContentConverter, nullptr, true }
 			}
 
 		}
@@ -414,26 +414,21 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateTypePage( const kv::Block&
 		return nullptr;
 	}
 
-	auto doc = CreateDocument( name->GetValue().CStr(), documentation->GetValue().CStr() );
+	std::string strName = CHFI.FormatString( name->GetValue().CStr() );
+	std::string strDoc = CHFI.FormatString( documentation->GetValue().CStr() );
+
+	auto doc = CreateDocument( strName.c_str(), strDoc.c_str() );
 	auto body = doc->GetBody();
 
-	body->AddObject( std::make_shared<CHTMLElement>( "h1", name->GetValue().CStr() ) );
-
-
+	body->AddObject( std::make_shared<CHTMLElement>( "h1", strName ) );
 
 	const auto& nspaceText = nspace->GetValue();
 	if( !nspaceText.IsEmpty() )
 	{
-		auto p = std::make_shared<CHTMLElement>( "p" );
-		auto b = std::make_shared<CHTMLElement>( "b", std::string( "Namespace: " ) );
-		p->AddObject( b );
-		p->SetTextContents( nspaceText.CStr() );
-		body->AddObject( p );
+		body->AddObject( std::make_shared<CHTMLElement>( "p", "<b>Namespace:</b>&nbsp;" ) );
 	}
 
-
-
-	body->AddObject( std::make_shared<CHTMLElement>( "p", documentation->GetValue().CStr() ) );
+	body->AddObject( std::make_shared<CHTMLElement>( "p", strDoc ) );
 
 	for( const auto& typeContent : pageData.typeContents )
 	{
@@ -485,9 +480,9 @@ std::shared_ptr<CHTMLElement> CDocGenerator::GenerateCollectionHeader( const kv:
 {
 	auto div = std::make_shared<CHTMLElement>( "div" );
 
-	div->AddObject( std::make_shared<CHTMLElement>( "h1", header.pszHeader ) );
+	div->AddObject( std::make_shared<CHTMLElement>( "h1", CHFI.FormatString( header.pszHeader ) ) );
 
-	div->AddObject( std::make_shared<CHTMLElement>( "p", header.pszDescription ) );
+	div->AddObject( std::make_shared<CHTMLElement>( "p", CHFI.FormatString( header.pszDescription ) ) );
 
 	return div;
 }
@@ -506,9 +501,9 @@ std::pair<bool, std::shared_ptr<CHTMLElement>> CDocGenerator::GenerateTable( con
 		return std::make_pair( true, nullptr );
 	}
 
-	auto table = std::make_shared<CHTMLElement>( "table", "", HTMLF_NL_CLOSE );
+	auto table = std::make_shared<CHTMLElement>( "table", "", HTMLF_NL_OPEN );
 
-	auto headrow = std::make_shared<CHTMLElement>( "tr", "", HTMLF_NL_CLOSE );
+	auto headrow = std::make_shared<CHTMLElement>( "tr", "", HTMLF_NL_OPEN );
 
 	for( const auto& contentEntry : content.vecContent )
 	{
@@ -529,7 +524,7 @@ std::pair<bool, std::shared_ptr<CHTMLElement>> CDocGenerator::GenerateTable( con
 
 		auto block = static_cast<kv::Block*>( blockNode );
 
-		auto row = std::make_shared<CHTMLElement>( "tr", "", HTMLF_NL_CLOSE );
+		auto row = std::make_shared<CHTMLElement>( "tr", "", HTMLF_NL_OPEN );
 
 		for( const auto& contentEntry : content.vecContent )
 		{
@@ -560,15 +555,21 @@ std::pair<bool, std::shared_ptr<CHTMLElement>> CDocGenerator::GenerateTable( con
 
 			auto td = std::make_shared<CHTMLElement>( "td" );
 
+			std::string text;
+			if ( contentEntry.bShortFmt )
+				text = CHFI.FormatFirstLine( szText.CStr() );
+			else
+				text = CHFI.FormatString( szText.CStr() );
+
 			if ( bGenLink )
 			{
-				auto a = std::make_shared<CHTMLElement>( "a", szText.CStr() );
-				a->SetAttributeValue( "href", std::string( szText.CStr() ) + ".htm" );
+				auto a = std::make_shared<CHTMLElement>( "a", text );
+				a->SetAttributeValue( "href", text + ".htm" );
 				td->AddObject( a );
 			}
 			else
 			{
-				td->SetTextContents( szText.CStr() );
+				td->SetTextContents( text );
 			}
 
 			row->AddObject( td );

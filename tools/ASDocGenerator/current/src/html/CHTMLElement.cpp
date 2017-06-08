@@ -23,7 +23,7 @@ void CHTMLElement::GenerateHTML( std::stringstream& stream )
 
 	stream << '>';
 
-	if ( m_flags & HTMLF_NL_CLOSE )
+	if ( m_flags & HTMLF_NL_OPEN )
 	{
 		stream << std::endl;
 		CHFI.EnableIndent();
@@ -38,7 +38,7 @@ void CHTMLElement::GenerateHTML( std::stringstream& stream )
 
 	stream << m_szTextContents;
 
-	if ( m_flags & HTMLF_NL_CLOSE )
+	if ( m_flags & HTMLF_NL_OPEN )
 	{
 		CHFI.DecIndent();
 		CHFI.EnableIndent();
