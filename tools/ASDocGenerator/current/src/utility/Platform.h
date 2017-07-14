@@ -1,6 +1,11 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+bool makedir( const char * cszPath );
+
+bool direxists( const char * dir );
+bool fileexists( const char * file );
+
 #ifdef WIN32
 // Windows
 
@@ -15,6 +20,8 @@
 
 #define MAX_PATH_LENGTH MAX_PATH
 
+#define PATH_SEP '\\'
+
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 
@@ -23,7 +30,6 @@
 
 #undef getch
 #undef getche
-
 #define getch _getch
 #define getche _getche
 
@@ -35,6 +41,8 @@
 
 #define MAX_PATH PATH_MAX
 #define MAX_PATH_LENGTH PATH_MAX
+
+#define PATH_SEP '/'
 
 // Reads 1 character without echo
 char getch( void );

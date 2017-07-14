@@ -14,6 +14,33 @@ class CHTMLHeader : public IHTMLObject
 {
 public:
 
+	// Open Graph
+	
+	typedef enum
+	{
+		OGID_TITLE = 0,
+		OGID_DESC,
+		OGID_TYPE,
+		OGID_IMAGE,
+		OGID_SITE
+
+	} OGID;
+
+private:
+
+	const static int NUM_OGID = OGID_SITE + 1;
+
+	const std::string OGTypes[ NUM_OGID ] =
+	{
+		"og:title",
+		"og:description",
+		"og:type",
+		"og:image",
+		"og:site_name"
+	};
+
+public:
+
 	CHTMLHeader();
 	~CHTMLHeader() = default;
 
@@ -22,9 +49,11 @@ public:
 	std::shared_ptr<CHTMLElement> GetTitle() const { return m_Title; }
 	std::shared_ptr<CHTMLElement> GetDescription() const { return m_Description; }
 	std::shared_ptr<CHTMLElement> GetStyleSheet() const { return m_StyleSheet; }
+	std::shared_ptr<CHTMLElement> GetOpenGraph( OGID id ) const { return m_OpenGraph[ id ]; }
 
 private:
 	std::shared_ptr<CHTMLElement> m_Title, m_Description, m_StyleSheet;
+	std::shared_ptr<CHTMLElement> m_OpenGraph[ NUM_OGID ];
 
 private:
 

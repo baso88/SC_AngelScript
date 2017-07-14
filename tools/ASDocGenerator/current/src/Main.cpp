@@ -118,7 +118,20 @@ int main( int iArgc, char* pszArgv[] )
 		Error( "Output directory not specified. Use -h or --help to print help page.\n" );
 		iReturnCode = EXIT_FAILURE;
 	}
-	else
+	
+
+	if ( !direxists( pszOutputDirectory ) )
+	{
+		Warning( "Output directory does not exist. Creating...\n" );
+
+		if ( !makedir( pszOutputDirectory ) )
+		{
+			Error( "Unable to create output directory.\n" );
+			iReturnCode = EXIT_FAILURE;
+		}
+	}
+
+	if ( iReturnCode == EXIT_SUCCESS )
 	{
 		CDocGenerator generator;
 		if( !generator.GenerateFromFile( pszInputFilename, pszOutputDirectory ) )

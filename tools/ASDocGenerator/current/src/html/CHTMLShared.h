@@ -110,10 +110,10 @@ public:
 		return ReplaceSpecialChars( in );
 	}
 
-	std::string GetFirstLine( const std::string &in )
+	std::string GetFirstLine( const std::string &in, bool bHTML = false )
 	{
 		std::string out;
-		size_t pos = in.find( '\n' );
+		size_t pos = bHTML ? in.find( "<br>" ) : in.find( '\n' );
 		if ( pos == std::string::npos )
 			out = in;
 		else
@@ -121,9 +121,9 @@ public:
 		return out;
 	}
 
-	std::string FormatFirstLine( const std::string &in )
+	std::string FormatFirstLine( const std::string &in, bool bHTML = false )
 	{
-		return FormatString( GetFirstLine( in ) );
+		return FormatString( GetFirstLine( in, bHTML ) );
 	}
 
 private:

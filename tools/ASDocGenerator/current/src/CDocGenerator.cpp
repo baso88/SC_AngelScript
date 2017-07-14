@@ -55,10 +55,6 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 
 	auto root = parser.GetKeyvalues();
 
-	auto indexPage = CreateDocument( "index" );
-
-	auto body = indexPage->GetBody();
-
 	auto documentation = root->FindFirstChild<kv::Block>( "Angelscript Documentation" );
 	if( !documentation )
 	{
@@ -97,8 +93,14 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 	std::string strGameVer = gameVer->GetValue().CStr();
 	Message( "Game version: %s\n", strGameVer.c_str() );
 
-	body->AddObject( std::make_shared<CHTMLElement>( "h1", "Index" ) );
-	body->AddObject( std::make_shared<CHTMLElement>( "p", "Sven Co-op " + strGameVer + " AngelScript documentation." ) );
+	std::string strTitle = "Index";
+	std::string strDesc = "Sven Co-op " + strGameVer + " AngelScript API documentation.";
+
+	auto indexPage = CreateDocument( strTitle.c_str(), strDesc.c_str() );
+	auto body = indexPage->GetBody();
+
+	body->AddObject( std::make_shared<CHTMLElement>( "h1", strTitle ) );
+	body->AddObject( std::make_shared<CHTMLElement>( "p", strDesc ) );
 
 	body->AddObject( std::make_shared<CHTMLElement>( "h2", "Contents" ) );
 
@@ -121,7 +123,7 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 			return false;
 	}
 
-	body->AddObject( std::make_shared<CHTMLElement>( "h2", "Links" ) );
+	body->AddObject( std::make_shared<CHTMLElement>( "h2", "External Links" ) );
 
 	auto ul2 = std::make_shared<CHTMLElement>( "ul" );
 	body->AddObject( ul2 );
@@ -177,16 +179,24 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::CreateDocument( const char * pszTi
 {
 	assert( pszTitle );
 
+	const char * pszDesc = pszDescription ? pszDescription : "";
+
 	auto doc = std::make_shared<CHTMLDocument>();
 
 	doc->GetHeader()->GetTitle()->SetTextContents( pszTitle );
-	doc->GetHeader()->GetDescription()->SetAttributeValue( "content", pszDescription ? pszDescription : "" );
+	doc->GetHeader()->GetDescription()->SetAttributeValue( "content", pszDesc );
 
 	auto stylesheet = doc->GetHeader()->GetStyleSheet();
 
 	stylesheet->SetAttributeValue( "rel", "stylesheet" );
 	stylesheet->SetAttributeValue( "type", "text/css" );
 	stylesheet->SetAttributeValue( "href", "doc.css" );
+
+	doc->GetHeader()->GetOpenGraph( CHTMLHeader::OGID_TITLE )->SetAttributeValue( "content", pszTitle );
+	doc->GetHeader()->GetOpenGraph( CHTMLHeader::OGID_DESC )->SetAttributeValue( "content", pszDesc );
+	doc->GetHeader()->GetOpenGraph( CHTMLHeader::OGID_TYPE )->SetAttributeValue( "content", "website" );
+	doc->GetHeader()->GetOpenGraph( CHTMLHeader::OGID_IMAGE )->SetAttributeValue( "content", "https://github.com/baso88/SC_AngelScript/wiki/images/sc_as_logo_media.png" );
+	doc->GetHeader()->GetOpenGraph( CHTMLHeader::OGID_SITE )->SetAttributeValue( "content", "Sven Co-op AngelScript API" );
 
 	return doc;
 }
@@ -273,7 +283,7 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateClasses( const kv::Block& 
 	{
 		"Classes",
 		"Classes",
-		"Here is a list of all documented classes with a brief descriptions of each.",
+		"List of all documented classes with a brief descriptions of each.",
 		{
 			"Classes",
 			"Class",
@@ -294,7 +304,7 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateEnums( const kv::Block& fu
 	{
 		"Enums",
 		"Enumerations",
-		"Here is a list of all documented enums with a brief descriptions of each.",
+		"List of all documented enums with a brief descriptions of each.",
 		{
 			"Enums",
 			"Enum",
@@ -458,7 +468,7 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateTypePage( const kv::Block&
 
 std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateCollectionPage( const kv::Block& data, const CollectionPage_t& pageData )
 {
-	auto doc = CreateDocument( pageData.pszPageName );
+	auto doc = CreateDocument( pageData.pszPageName, CHFI.FormatFirstLine( pageData.header.pszDescription, true ).c_str() );
 	auto body = doc->GetBody();
 
 	auto div = GenerateCollectionHeader( data, pageData.header );
@@ -480,9 +490,9 @@ std::shared_ptr<CHTMLElement> CDocGenerator::GenerateCollectionHeader( const kv:
 {
 	auto div = std::make_shared<CHTMLElement>( "div" );
 
-	div->AddObject( std::make_shared<CHTMLElement>( "h1", CHFI.FormatString( header.pszHeader ) ) );
+	div->AddObject( std::make_shared<CHTMLElement>( "h1", header.pszHeader ) );
 
-	div->AddObject( std::make_shared<CHTMLElement>( "p", CHFI.FormatString( header.pszDescription ) ) );
+	div->AddObject( std::make_shared<CHTMLElement>( "p", header.pszDescription ) );
 
 	return div;
 }
@@ -613,7 +623,7 @@ CDocGenerator::GenContentsResult_t CDocGenerator::GenerateContents( const kv::Bl
 
 void CDocGenerator::SavePage( const std::string& szDirectory, std::shared_ptr<CHTMLDocument> page )
 {
-	const std::string szPath = std::string( ".\\" ) + szDirectory + '\\' + page->GetHeader()->GetTitle()->GetTextContents() + ".htm";
+	const std::string szPath = szDirectory + PATH_SEP + page->GetHeader()->GetTitle()->GetTextContents() + ".htm";
 	std::ofstream stream( szPath );
 	if( !stream.is_open() )
 	{

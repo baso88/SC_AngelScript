@@ -49,6 +49,8 @@ constexpr inline size_t _ArraySizeof( T( &)[ SIZE ] )
 */
 #define ARRAYSIZE _ArraySizeof
 
+#define IS_CSTR_VALID( str ) ( ( str ) != nullptr && ( str )[ 0 ] != '\0' )
+
 #define MAX_BUFFER_LENGTH 512
 
 #endif // UTILITY_H

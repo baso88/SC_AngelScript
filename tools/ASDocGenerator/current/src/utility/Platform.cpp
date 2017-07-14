@@ -1,13 +1,34 @@
 #include "Platform.h"
 
+#include "Utility.h"
+
 #ifdef WIN32
 // Windows
+
+#include <direct.h> // _mkdir
+#include <io.h> // _access
+
+#undef access
+#define access _access
+
+bool makedir( const char * cszPath )
+{
+	return ( _mkdir( cszPath ) == 0 );
+}
 
 #else
 // Linux
 
+// getch/getche
 #include <termios.h>
 #include <stdio.h>
+
+// mkdir
+#include <sys/types.h>
+#include <sys/stat.h>
+
+//----------------------------------------------------------------------------
+//getch/getche
 
 static struct termios old, cur;
 
@@ -46,4 +67,40 @@ char getche( void )
 	return getch_( 1 );
 }
 
+//----------------------------------------------------------------------------
+// mkdir
+
+bool makedir( const char * cszPath )
+{
+	return ( mkdir( sPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH ) == 0 );
+}
+
 #endif
+
+bool direxists( const char * dir )
+{
+	if ( !IS_CSTR_VALID( dir ) )
+		return false;
+
+	if ( access( dir, 0 ) != 0 )
+		return false;
+	
+	struct stat status;
+	stat( dir, &status );
+	
+	return ( status.st_mode & S_IFDIR );
+}
+
+bool fileexists( const char * file )
+{
+	if ( !IS_CSTR_VALID( file ) )
+		return false;
+
+	if( access( file, 0 ) != 0 )
+		return false;
+
+	struct stat status;
+	stat( file, &status );
+
+	return !( status.st_mode & S_IFDIR );
+}
