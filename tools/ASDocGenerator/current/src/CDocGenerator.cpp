@@ -96,7 +96,7 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 	std::string strTitle = "Index";
 	std::string strDesc = "Sven Co-op " + strGameVer + " AngelScript API documentation.";
 
-	auto indexPage = CreateDocument( strTitle.c_str(), strDesc.c_str() );
+	auto indexPage = CreateDocument( "index", strDesc.c_str() );
 	auto body = indexPage->GetBody();
 
 	body->AddObject( std::make_shared<CHTMLElement>( "h1", strTitle ) );
@@ -427,7 +427,7 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateTypePage( const kv::Block&
 	std::string strName = CHFI.FormatString( name->GetValue().CStr() );
 	std::string strDoc = CHFI.FormatString( documentation->GetValue().CStr() );
 
-	auto doc = CreateDocument( strName.c_str(), strDoc.c_str() );
+	auto doc = CreateDocument( strName.c_str(), CHFI.GetFirstLine( strDoc, true ).c_str() );
 	auto body = doc->GetBody();
 
 	body->AddObject( std::make_shared<CHTMLElement>( "h1", strName ) );
@@ -468,7 +468,7 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateTypePage( const kv::Block&
 
 std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateCollectionPage( const kv::Block& data, const CollectionPage_t& pageData )
 {
-	auto doc = CreateDocument( pageData.pszPageName, CHFI.FormatFirstLine( pageData.header.pszDescription, true ).c_str() );
+	auto doc = CreateDocument( pageData.pszPageName, CHFI.GetFirstLine( pageData.header.pszDescription, true ).c_str() );
 	auto body = doc->GetBody();
 
 	auto div = GenerateCollectionHeader( data, pageData.header );
