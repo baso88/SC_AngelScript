@@ -15,6 +15,34 @@ void PluginInit()
 	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @ClientSay );
 }
 
+// Converts floating-point number to unsigned 16-bit fixed-point representation
+uint16 FixedUnsigned16( float value, float scale )
+{
+	float scaled = value * scale;
+	int output = int( scaled );
+	
+	if ( output < 0 )
+		output = 0;
+	if ( output > 0xFFFF )
+		output = 0xFFFF;
+
+	return uint16( output );
+}
+
+// Converts floating-point number to signed 16-bit fixed-point representation
+int16 FixedSigned16( float value, float scale )
+{
+	float scaled = value * scale;
+	int output = int( scaled );
+
+	if ( output > 32767 )
+		output = 32767;
+	if ( output < -32768 )
+		output = -32768;
+
+	return int16( output );
+}
+
 class Color
 { 
 	uint8 r, g, b, a;
@@ -1095,16 +1123,16 @@ void te_usertracer(Vector pos, Vector dir, float speed=6000.0f,
 // 0 : fade in/out
 // 1 : flickery credits
 // 2 : write out characeter by character
-void te_textmessage(string text, uint8 channel=1, uint16 x=4000, uint16 y=4000, uint8 effect=2,
-	Color textColor=WHITE, Color effectColor=PURPLE, uint16 fadeInTime=16, 
-	uint16 fadeOutTime=16, uint16 holdTime=300, uint16 scanTime=20,
+void te_textmessage(string text, uint8 channel=1, float x=1, float y=-1,
+	uint8 effect=0, Color textColor=WHITE, Color effectColor=PURPLE,
+	float fadeInTime=1.5, float fadeOutTime=0.5, float holdTime=1.2, float scanTime=0.25,
 	NetworkMessageDest msgType=MSG_BROADCAST, edict_t@ dest=null)
 {
 	NetworkMessage m(msgType, NetworkMessages::SVC_TEMPENTITY, dest);
 	m.WriteByte(TE_TEXTMESSAGE);
 	m.WriteByte(channel);
-	m.WriteShort(x);
-	m.WriteShort(y);
+	m.WriteShort(FixedSigned16(x,1<<13));
+	m.WriteShort(FixedSigned16(y,1<<13));
 	m.WriteByte(effect);
 	m.WriteByte(textColor.r);
 	m.WriteByte(textColor.g);
@@ -1114,11 +1142,11 @@ void te_textmessage(string text, uint8 channel=1, uint16 x=4000, uint16 y=4000, 
 	m.WriteByte(effectColor.g);
 	m.WriteByte(effectColor.b);
 	m.WriteByte(effectColor.a);
-	m.WriteShort(fadeInTime);
-	m.WriteShort(fadeOutTime);
-	m.WriteShort(holdTime);
-	if (effect == 2 and scanTime > 0) 
-		m.WriteShort(scanTime);
+	m.WriteShort(FixedUnsigned16(fadeInTime,1<<8));
+	m.WriteShort(FixedUnsigned16(fadeOutTime,1<<8));
+	m.WriteShort(FixedUnsigned16(holdTime,1<<8));
+	if (effect == 2) 
+		m.WriteShort(FixedUnsigned16(scanTime,1<<8));
 	m.WriteString(text);
 	m.End();
 }
