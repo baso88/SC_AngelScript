@@ -435,7 +435,9 @@ std::shared_ptr<CHTMLDocument> CDocGenerator::GenerateTypePage( const kv::Block&
 	const auto& nspaceText = nspace->GetValue();
 	if( !nspaceText.IsEmpty() )
 	{
-		body->AddObject( std::make_shared<CHTMLElement>( "p", "<b>Namespace:</b>&nbsp;" ) );
+		std::string strNamespace = "<b>Namespace:</b>&nbsp;";
+		strNamespace += nspaceText.CStr();
+		body->AddObject( std::make_shared<CHTMLElement>( "p", strNamespace ) );
 	}
 
 	body->AddObject( std::make_shared<CHTMLElement>( "p", strDoc ) );
