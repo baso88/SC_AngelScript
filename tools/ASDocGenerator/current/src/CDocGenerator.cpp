@@ -94,7 +94,16 @@ bool CDocGenerator::GenerateFromFile( const char* const pszInputFilename, const 
 	Message( "Game version: %s\n", strGameVer.c_str() );
 
 	std::string strTitle = "Index";
-	std::string strDesc = "Sven Co-op " + strGameVer + " AngelScript API documentation.";
+	std::string strDesc = "Sven Co-op " + strGameVer;
+
+	auto gameBuild = documentation->FindFirstChild<kv::KV>( "GameBuild" );
+	if ( gameBuild )
+	{
+		std::string strBuild = gameBuild->GetValue().CStr();
+		strDesc = strDesc + " " + "(" + "Internal build" + " " + strBuild + ")";
+	}
+
+	strDesc = strDesc + " " + "AngelScript API documentation.";
 
 	auto indexPage = CreateDocument( "index", strDesc.c_str() );
 	auto body = indexPage->GetBody();
