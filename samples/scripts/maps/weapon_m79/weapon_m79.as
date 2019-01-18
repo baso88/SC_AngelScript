@@ -49,7 +49,11 @@ const int M79_AMMO_GIVE 	= 2;
 
 class weapon_m79 : ScriptBasePlayerWeaponEntity
 {
-	private CBasePlayer@ m_pPlayer = null;
+	private CBasePlayer@ m_pPlayer
+	{
+		get const 	{ return cast<CBasePlayer@>( self.m_hPlayer.GetEntity() ); }
+		set       	{ self.m_hPlayer = EHandle( @value ); }
+	}
 	
 	void Spawn()
 	{
@@ -95,13 +99,15 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 
 	bool GetItemInfo( ItemInfo& out info ) // Weapon information goes here
 	{
-		info.iMaxAmmo1 	= M79_MAX_CARRY;
-		info.iMaxAmmo2 	= -1;
-		info.iMaxClip 	= M79_MAX_CLIP;
-		info.iSlot   	= 2;
-		info.iPosition 	= 10;
-		info.iFlags  	= 0;
-		info.iWeight 	= M79_WEIGHT;
+		info.iMaxAmmo1 	= M79_MAX_CARRY; //Maximum primary ammo
+		info.iMaxAmmo2 	= -1; //Maximum secondary ammo
+		info.iMaxClip 	= M79_MAX_CLIP; //Weapon's primary magazine
+		info.iAmmo1Drop	= 2; //How much ammo to drop
+		info.iAmmo2Drop	= -1; //How much secondary ammo to drop
+		info.iSlot   	= 2; //Weapon's slot
+		info.iPosition 	= 10; //Weapon's position on the weapon bucket
+		info.iFlags  	= 0; //Weapon's flags
+		info.iWeight 	= M79_WEIGHT; //Weapon's weight
 		return true;
 	}
 
@@ -114,13 +120,11 @@ class weapon_m79 : ScriptBasePlayerWeaponEntity
 	{
 		if( !BaseClass.AddToPlayer( pPlayer ) )
 			return false;
-		
-		@m_pPlayer = pPlayer;
-		
+
 		NetworkMessage m79( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
 			m79.WriteLong( g_ItemRegistry.GetIdForName("weapon_m79") ); // A better way than using self.m_iId
 		m79.End();
-		
+
 		return true;
 	}
 
@@ -258,7 +262,7 @@ class M79Ammo : ScriptBasePlayerAmmoEntity
 		g_EntityFuncs.SetModel( self, M79_A_MODEL );
 		BaseClass.Spawn();
 	}
-	
+
 	void Precache()
 	{
 		g_Game.PrecacheModel( M79_A_MODEL );
@@ -268,9 +272,9 @@ class M79Ammo : ScriptBasePlayerAmmoEntity
 	bool AddAmmo( CBaseEntity@ pOther )
 	{
 		int iGive;
-		
+
 		iGive = M79_AMMO_GIVE;
-		
+
 		if( pOther.GiveAmmo( iGive, "ammo_m79", M79_MAX_CARRY ) != -1 )
 		{
 			g_SoundSystem.EmitSound( self.edict(), CHAN_ITEM, "items/9mmclip1.wav", 1, ATTN_NORM );
@@ -294,7 +298,7 @@ void Register()
 {
 	g_CustomEntityFuncs.RegisterCustomEntity( "M79::weapon_m79", GetM79WName() ); // Register the weapon entity
 	g_CustomEntityFuncs.RegisterCustomEntity( "M79::M79Ammo", GetM79AName() ); // Register the ammo entity
-	g_ItemRegistry.RegisterWeapon( GetM79WName(), "as_sample", GetM79AName() ); // Register the weapon
+	g_ItemRegistry.RegisterWeapon( GetM79WName(), "as_sample", GetM79AName(), "", GetM79AName() ); // Register the weapon
 }
 
 } // Namespace end
