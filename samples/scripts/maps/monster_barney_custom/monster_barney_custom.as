@@ -270,11 +270,11 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 			else
 				self.m_FormattedName = "Barnabus";
 		}
-
-		self.MonsterInit();
 		
 		if( self.IsPlayerAlly() )
 			SetUse( UseFunction( this.FollowerUse ) );
+		
+		self.MonsterInit();
 	}
 	
 	void SetupFriendly()
