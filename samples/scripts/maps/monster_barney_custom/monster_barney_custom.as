@@ -41,7 +41,7 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 		switch ( pTask.iTask )
 		{
 		case TASK_RANGE_ATTACK1:
-			//if (self.m_hEnemy().IsValid() && (self.m_hEnemy().GetEntity().IsPlayer()))
+			//if(self.m_hEnemy().IsValid() && (self.m_hEnemy().GetEntity().IsPlayer()))
 				self.pev.framerate = 1.5f;
 
 				//m_flThinkDelay = 0.0f;
@@ -61,7 +61,7 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 				self.MakeIdealYaw ( self.m_vecEnemyLKP );
 				self.ChangeYaw ( int(self.pev.yaw_speed) );
 
-				if ( self.m_fSequenceFinished )
+				if( self.m_fSequenceFinished )
 				{
 					self.m_cAmmoLoaded = m_cClipSize;
 					self.ClearConditions(bits_COND_NO_AMMO_LOADED);
@@ -127,7 +127,7 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 	
 	bool CheckRangeAttack1( float flDot, float flDist )
 	{	
-		if ( flDist <= 2048 && flDot >= 0.5 && self.NoFriendlyFire())
+		if( flDist <= 2048 && flDot >= 0.5 && self.NoFriendlyFire())
 		{
 			CBaseEntity@ pEnemy = self.m_hEnemy.GetEntity();
 			TraceResult tr;
@@ -135,7 +135,7 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 			Vector shootTarget = (pEnemy.BodyTarget( shootOrigin ) - pEnemy.Center()) + self.m_vecEnemyLKP;
 			g_Utility.TraceLine( shootOrigin, shootTarget, dont_ignore_monsters, self.edict(), tr );
 						
-			if ( tr.flFraction == 1.0 || tr.pHit is pEnemy.edict() )
+			if( tr.flFraction == 1.0 || tr.pHit is pEnemy.edict() )
 				return true;
 		}
 
@@ -154,7 +154,7 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 		g_EntityFuncs.EjectBrass( vecShootOrigin - vecShootDir * -17, vecShellVelocity, self.pev.angles.y, m_iBrassShell, TE_BOUNCE_SHELL); 
 
 		int pitchShift = Math.RandomLong( 0, 20 );
-		if ( pitchShift > 10 )// Only shift about half the time
+		if( pitchShift > 10 )// Only shift about half the time
 			pitchShift = 0;
 		else
 			pitchShift -= 5;
@@ -176,7 +176,7 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 	
 	void CheckAmmo()
 	{
-		if ( self.m_cAmmoLoaded <= 0 )
+		if( self.m_cAmmoLoaded <= 0 )
 			self.SetConditions( bits_COND_NO_AMMO_LOADED );
 	}
 	
@@ -239,12 +239,14 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 	void Spawn()
 	{
 		Precache();
-		
+
+		self.SetPlayerAlly( !self.IsPlayerAlly() ); //Set Barney as ally/foe upon spawning
+
 		if( !self.SetupModel() )
 			self.SetupFriendly();
 
 		g_EntityFuncs.SetSize( self.pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
-	
+
 		pev.solid					= SOLID_SLIDEBOX;
 		pev.movetype				= MOVETYPE_STEP;
 		self.m_bloodColor			= BLOOD_COLOR_RED;
@@ -271,10 +273,10 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 				self.m_FormattedName = "Barnabus";
 		}
 
-		self.MonsterInit();
-		
 		if( self.IsPlayerAlly() )
 			SetUse( UseFunction( this.FollowerUse ) );
+
+		self.MonsterInit();
 	}
 	
 	void SetupFriendly()
@@ -297,25 +299,25 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 
 		// make sure friends talk about it if player hurts talkmonsters...
 		int ret = BaseClass.TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
-		if ( ( !self.IsAlive() || self.pev.deadflag == DEAD_DYING) && (!self.IsPlayerAlly()))	// evils dont alert friends!
+		if( ( !self.IsAlive() || self.pev.deadflag == DEAD_DYING) && (!self.IsPlayerAlly()))	// evils dont alert friends!
 			return ret;
 
-		if ( self.m_MonsterState != MONSTERSTATE_PRONE && (pevAttacker.flags & FL_CLIENT) != 0 )
+		if( self.m_MonsterState != MONSTERSTATE_PRONE && (pevAttacker.flags & FL_CLIENT) != 0 )
 		{
 			// This is a heurstic to determine if the player intended to harm me
 			// If I have an enemy, we can't establish intent (may just be crossfire)
-			if ( !self.m_hEnemy.IsValid() )
+			if( !self.m_hEnemy.IsValid() )
 			{		
 				if( self.pev.deadflag == DEAD_NO )
 				{
 					// If the player was facing directly at me, or I'm already suspicious, get mad
-					if ( (self.m_afMemory & bits_MEMORY_SUSPICIOUS) != 0 || pAttacker.IsFacing( self.pev, 0.96f ) )
+					if( (self.m_afMemory & bits_MEMORY_SUSPICIOUS) != 0 || pAttacker.IsFacing( self.pev, 0.96f ) )
 					{
 						// Alright, now I'm pissed!
 						//PlaySentence( "BA_MAD", 4, VOL_NORM, ATTN_NORM );
 
 						self.Remember( bits_MEMORY_PROVOKED );
-						self.StopFollowing( true );
+						self.StopPlayerFollowing( true, false );
 					}
 					else
 					{
@@ -325,7 +327,7 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 					}
 				}
 			}
-			else if ( (!self.m_hEnemy.GetEntity().IsPlayer()) && self.pev.deadflag == DEAD_NO )
+			else if( (!self.m_hEnemy.GetEntity().IsPlayer()) && self.pev.deadflag == DEAD_NO )
 			{
 				//PlaySentence( "BA_SHOT", 4, VOL_NORM, ATTN_NORM );
 			}
@@ -351,7 +353,7 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 	
 	void PainSound()
 	{
-		if (g_Engine.time < m_painTime)
+		if(g_Engine.time < m_painTime)
 			return;
 		
 		m_painTime = g_Engine.time + Math.RandomFloat(0.5, 0.75);
@@ -379,7 +381,7 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 		{
 		case HITGROUP_CHEST:
 		case HITGROUP_STOMACH:
-			if (( bitsDamageType & ( DMG_BULLET | DMG_SLASH | DMG_BLAST) ) != 0)
+			if( ( bitsDamageType & ( DMG_BULLET | DMG_SLASH | DMG_BLAST) ) != 0 )
 			{
 				if(flDamage >= 2)
 					flDamage -= 2;
@@ -388,10 +390,10 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 			}
 			break;
 		case 10:
-			if (( bitsDamageType & (DMG_SNIPER | DMG_BULLET | DMG_SLASH | DMG_CLUB) ) != 0)
+			if( ( bitsDamageType & (DMG_SNIPER | DMG_BULLET | DMG_SLASH | DMG_CLUB) ) != 0 )
 			{
 				flDamage -= 20;
-				if (flDamage <= 0)
+				if( flDamage <= 0 )
 				{
 					g_Utility.Ricochet( ptr.vecEndPos, 1.0 );
 					flDamage = 0.01;
@@ -405,14 +407,14 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 		BaseClass.TraceAttack( pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
 	}
 	
-	Schedule@ GetScheduleOfType ( int Type )
+	Schedule@ GetScheduleOfType( int Type )
 	{		
 		Schedule@ psched;
 
 		switch( Type )
 		{
 		case SCHED_ARM_WEAPON:
-			if ( self.m_hEnemy.IsValid() )
+			if( self.m_hEnemy.IsValid() )
 				return slBarneyEnemyDraw;// face enemy, then draw.
 			break;
 
@@ -420,13 +422,13 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 		case SCHED_TARGET_FACE:
 			// call base class default so that barney will talk
 			// when 'used' 
-			@psched = BaseClass.GetScheduleOfType(Type);
+			@psched = BaseClass.GetScheduleOfType( SCHED_TARGET_FACE );
 			
-			if (psched is Schedules::slIdleStand)
+			if( psched is Schedules::slIdleStand )
 				return slBaFaceTarget;	// override this for different target face behavior
 			else
 				return psched;
-				
+
 
 		case SCHED_RELOAD:
 			return slBaReloadQuick; //Immediately reload.
@@ -440,12 +442,12 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 		case SCHED_IDLE_STAND:
 			// call base class default so that scientist will talk
 			// when standing during idle
-			@psched = BaseClass.GetScheduleOfType(Type);
+			@psched = BaseClass.GetScheduleOfType( Type );
 
-			if (psched is Schedules::slIdleStand)		
+			if( psched is Schedules::slIdleStand )		
 				return slIdleBaStand;// just look straight ahead.
 			else
-				return psched;	
+				return psched;
 		}
 
 		return BaseClass.GetScheduleOfType( Type );
@@ -453,18 +455,18 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 	
 	Schedule@ GetSchedule()
 	{
-		if ( self.HasConditions( bits_COND_HEAR_SOUND ) )
+		if( self.HasConditions( bits_COND_HEAR_SOUND ) )
 		{
 			CSound@ pSound = self.PBestSound();
 
-			if ( pSound !is null && (pSound.m_iType & bits_SOUND_DANGER) != 0 )
+			if( pSound !is null && (pSound.m_iType & bits_SOUND_DANGER) != 0 )
 			{
 				FearScream(); //AGHH!!!!
 				return self.GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
 			}
 		}
 
-		if ( self.HasConditions( bits_COND_ENEMY_DEAD ) )
+		if( self.HasConditions( bits_COND_ENEMY_DEAD ) )
 			self.PlaySentence( "BA_KILL", 4, VOL_NORM, ATTN_NORM );
 
 		switch( self.m_MonsterState )
@@ -472,43 +474,43 @@ class CMonsterBarneyCustom : ScriptBaseMonsterEntity
 		case MONSTERSTATE_COMBAT:
 			{
 				// dead enemy
-				if ( self.HasConditions( bits_COND_ENEMY_DEAD ) )				
+				if( self.HasConditions( bits_COND_ENEMY_DEAD ) )				
 					return BaseClass.GetSchedule();// call base class, all code to handle dead enemies is centralized there.
 
 				// always act surprized with a new enemy
-				if ( self.HasConditions( bits_COND_NEW_ENEMY ) && self.HasConditions( bits_COND_LIGHT_DAMAGE) )
+				if( self.HasConditions( bits_COND_NEW_ENEMY ) && self.HasConditions( bits_COND_LIGHT_DAMAGE) )
 					return self.GetScheduleOfType( SCHED_SMALL_FLINCH );
 					
 				// wait for one schedule to draw gun
 				if( !m_fGunDrawn )
 					return self.GetScheduleOfType( SCHED_ARM_WEAPON );
 
-				if ( self.HasConditions( bits_COND_HEAVY_DAMAGE ) )
+				if( self.HasConditions( bits_COND_HEAVY_DAMAGE ) )
 					return self.GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
 				
 				//Barney reloads now.
-				if ( self.HasConditions ( bits_COND_NO_AMMO_LOADED ) )
+				if( self.HasConditions ( bits_COND_NO_AMMO_LOADED ) )
 					return self.GetScheduleOfType ( SCHED_BARNEY_RELOAD );
 			}
 			break;
 
 		case MONSTERSTATE_IDLE:
 				//Barney reloads now.
-				if ( self.m_cAmmoLoaded != m_cClipSize )
+				if( self.m_cAmmoLoaded != m_cClipSize )
 					return self.GetScheduleOfType( SCHED_BARNEY_RELOAD );
 
 		case MONSTERSTATE_ALERT:	
 			{
-				if ( self.HasConditions(bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE) )
+				if( self.HasConditions(bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE) )
 					return self.GetScheduleOfType( SCHED_SMALL_FLINCH ); // flinch if hurt
 
 				//The player might have just +used us, immediately follow and dis-regard enemies.
 				//This state gets set (alert) when the monster gets +used
-				if ( (!self.m_hEnemy.IsValid() || !self.HasConditions( bits_COND_SEE_ENEMY)) && self.IsPlayerFollowing() )	//Start Player Following
+				if( (!self.m_hEnemy.IsValid() || !self.HasConditions( bits_COND_SEE_ENEMY)) && self.IsPlayerFollowing() )	//Start Player Following
 				{
-					if ( !self.m_hTargetEnt.GetEntity().IsAlive() )
-					{					
-						self.StopFollowing( false );// UNDONE: Comment about the recently dead player here?
+					if( !self.m_hTargetEnt.GetEntity().IsAlive() )
+					{
+						self.StopPlayerFollowing( false, false );// UNDONE: Comment about the recently dead player here?
 						break;
 					}
 					else
